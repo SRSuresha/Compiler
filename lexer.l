@@ -54,7 +54,7 @@
 "!="				{return NEQ;}
 "||"				{return OR;}
 [\"].*[\"]			{return STRINGV;}
-[\'].[\']			{return CHARV}
+[\'].[\']			{return CHARV;}
 "&"[a-zA-Z][0-9a-zA-Z_]* 	{return ADDRESS;}
 "^"[a-zA-Z][0-9a-zA-Z_]*	{return PVALUE;}
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\| \{ \}\(\)\[\] ]  	{return *yytext; }
