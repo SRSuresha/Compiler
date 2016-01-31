@@ -1,0 +1,78 @@
+%option yylineno
+%pointer
+
+%{
+    #include <stdlib.h>
+    #include <string.h>
+    #include "parser.hpp"
+
+    void yyerror(const char *);
+%}
+
+
+/** WRITE ME:
+ *  Put any definitions you need here. Add your own regular expressions
+ *  below for ALL tokens defined in the manual. You can choose not to use
+ *  definitions here.
+ */
+/**
+ %token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
+ %token NUMBER EQ GE LE NEQ WHILE ADDRESS CHARV
+*/
+
+
+/** The example below is very simple, but it shows almost everything you will
+ *  need to do for this first part. The syntax is as follows:
+ *
+ *  regular_expression      {  c code  }
+ *
+ * The lexer will try to match each regular expression. When it does it will
+ * execute the corresponding C code.
+*/
+
+%%
+
+
+"Main"				{return MAIN;}
+"boolean"			{return BOOLEAN;}
+"char"				{return CHAR;}
+"integer"			{return INTEGER;}
+"string"			{return STRING;}
+"intptr"			{return INTPTR;}
+"charptr"			{return CHARPTR;}
+"if"  				{return CHARPTR;}
+"else"				{return ELSE;}
+"while"				{return WHILE;}
+"var"				{return VAR;}
+"procedure"			{return PROCEDURE;}
+"return"			{return RETURN;}
+"null"				{return NULLX;}
+"&&"				{return AND;}
+"=="				{return EQ;}
+">="				{return GE;}
+"<="				{return LE;}
+"!="				{return NEQ;}
+"||"				{return OR;}
+[\"].*[\"]			{return STRINGV;}
+[\'].[\']			{return CHARV}
+"&"[a-zA-Z][0-9a-zA-Z_]* 	{return ADDRESS;}
+"^"[a-zA-Z][0-9a-zA-Z_]*	{return PVALUE;}
+[\/\=\>\<\-\!\+\*\&\^\;\:\,\| \{ \}\(\)\[\] ]  	{return *yytext; }
+[0-7][0-7]* 				{return NUMBER;}
+"0X"[0-9A-F][0-9A-F]* 		{return NUMBER;}
+[+|-]?[0-9][0-9]*         	{return NUMBER; }
+[a-zA-Z][0-9a-zA-Z_]*		{return ID;}
+[ \t\n]             ; /* skip whitespace */
+"(%".*"%)"			; /* skip comment */
+
+.                   yyerror((char *) "invalid character");
+
+%%
+
+/** You shall not pass!
+ *  You should not  have to do or edit anything past this.
+ */
+
+int yywrap(void) {
+    return 1;
+}

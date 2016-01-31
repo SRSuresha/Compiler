@@ -1,0 +1,118 @@
+%{
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define YYDEBUG 1
+
+    int yylex(void);
+    void yyerror(const char *);
+%}
+ 
+/* Enables verbose error messages */
+%error-verbose
+
+/** WRITE ME:
+ *  - Put all your token definitions here
+ *  - Put all your type definitions here
+ *  - Put all your precedence/associativity rules here
+ */
+
+ %token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
+ %token NUMBER EQ GE LE NEQ AND OR PVALUE ADDRESS
+%%
+
+/** WRITE ME:
+ *  This is the language from Project 1. You need to put the productions for
+ *  the grammar for the language for this project here.
+ */
+		
+S       : PROCEDURE ProcedureStarts MainProcedures Procedures
+        | NUMBER '+' NUMBER                                       
+        ;
+
+ProcedureStarts: ID '(' Parameter ')' RETURN Type '{' Exprs ReturnExprs '}' PROCEDURE ProcedureStarts
+        | 
+        ;
+
+Procedures : PROCEDURE ID '(' Parameter ')' RETURN Type '{' Exprs ReturnExprs '}' 
+        |
+        ;
+
+MainProcedures: MAIN '('  ')'RETURN Type '{' Exprs ReturnExprs '}'
+        ;
+
+Exprs   : VAR ID IDPrime ':' Type ';' Exprs
+        | LHS '=' RHS ';' Exprs
+        | Ifelse Exprs
+        |
+        ;
+        
+
+AOP     : '+' |  '-'  |  '*'  |  '/' 
+        ;
+
+COP     : EQ | GE | LE | NEQ | '>' | '<'
+        ;
+
+LHS     : ID
+        ;
+
+Arguments : ID IDPrime
+        |
+        ;
+
+RHS     : Term AOP Term
+        | Term
+        | ID '(' Arguments ')'
+        | NULLX
+        ;
+
+
+Term    : ID
+        | NUMBER
+
+ReturnExprs : RETURN Term
+        ;
+
+Parameter: ID IDPrime ':' Type ParameterPrime
+        |
+        ;
+
+ParameterPrime : ';' ID IDPrime ':' Type ParameterPrime
+        |
+        ;
+
+IDPrime : ',' ID IDPrime
+        |   
+        ;
+
+Type    : BOOLEAN
+        | INTEGER
+        | CHAR
+        | CHARPTR
+        | STRING
+        ;
+
+Ifelse  : IF '(' BoolStmt ')'  '{' Exprs '}' ElseStmt
+        ;
+
+BoolStmt: Term COP Term
+        ; 
+
+ElseStmt: ELSE '{' Exprs '}'
+        |
+        ;
+
+
+%%
+
+/** You shall not pass!
+ *  You should not  have to do or edit anything past this.
+ */
+
+extern int yylineno;
+
+void yyerror(const char *s)
+{
+    fprintf(stderr, "%s at line %d\n", s, yylineno);
+    return;
+}
