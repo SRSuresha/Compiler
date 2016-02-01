@@ -40,13 +40,15 @@
 "string"			{return STRING;}
 "intptr"			{return INTPTR;}
 "charptr"			{return CHARPTR;}
-"if"  				{return CHARPTR;}
+"if"  				{return IF;}
 "else"				{return ELSE;}
 "while"				{return WHILE;}
 "var"				{return VAR;}
 "procedure"			{return PROCEDURE;}
 "return"			{return RETURN;}
 "null"				{return NULLX;}
+"true"				{return TRUE;}
+"false"				{return FALSE;}
 "&&"				{return AND;}
 "=="				{return EQ;}
 ">="				{return GE;}

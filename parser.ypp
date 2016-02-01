@@ -17,7 +17,7 @@
  */
 
  %token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
- %token NUMBER EQ GE LE NEQ AND OR PVALUE ADDRESS STRINGV CHARV
+ %token NUMBER EQ GE LE NEQ AND OR PVALUE ADDRESS STRINGV CHARV TRUE FALSE
 %%
 
 /** WRITE ME:
@@ -40,7 +40,7 @@ Procedures : PROCEDURE ID '(' Parameter ')' RETURN Type '{' Exprs ReturnExprs '}
 MainProcedures: MAIN '('  ')'RETURN Type '{' Exprs ReturnExprs '}'
         ;
 
-Exprs   : VAR ID IDPrime ':' Type ';' Exprs
+Exprs   : VAR ID IDPrime ':' DeclareType ';' Exprs
         | LHS '=' RHS ';' Exprs
         | Ifelse Exprs
         | WhileStmt Exprs
@@ -50,13 +50,12 @@ Exprs   : VAR ID IDPrime ':' Type ';' Exprs
 WhileStmt: WHILE '(' BoolStmt ')' '{' Exprs '}'
         ;
 
-AOP     : '+' |  '-'  |  '*'  |  '/' 
         ;
 
 COP     : EQ | GE | LE | NEQ | '>' | '<'
         ;
 
-Sbarket : '[' NUMBER ']'
+Sbarket : '[' Calc ']'
         |
         ;
 
@@ -69,20 +68,22 @@ Arguments : ID IDPrime
         |
         ;
 
-RHS     : Term AOP Term
-        | NUMBER
+RHS     : Calc
         | ID '(' Arguments ')'
         | NULLX
         | ID  Sbarket
         | '&' ID Sbarket
         | '^' ID
+        | STRINGV
+        | CHARV
         ;
 
 
 Term    : ID
         | NUMBER
 
-ReturnExprs : RETURN Term
+ReturnExprs : RETURN NUMBER
+            | RETURN ID Sbarket
         ;
 
 Parameter: ID IDPrime ':' Type ParameterPrime
@@ -104,14 +105,49 @@ Type    : BOOLEAN
         | STRING
         ;
 
+DeclareType : BOOLEAN
+        | INTEGER
+        | CHAR
+        | CHARPTR
+        | STRING '[' NUMBER ']'
+        ;
+
 Ifelse  : IF '(' BoolStmt ')'  '{' Exprs '}' ElseStmt
         ;
 
-BoolStmt: Term COP Term
+BoolStmt: Term COP Term Conditions
+        | TRUE
+        | FALSE
         ; 
 
 ElseStmt: ELSE '{' Exprs '}'
         |
+        ;
+
+Conditions: AND BoolStmt
+        | OR BoolStmt
+        |
+        ;
+
+Calc    : Tm CalcPrime
+        ;
+
+CalcPrime : '+' Tm CalcPrime
+        |   '-' Tm CalcPrime
+        |
+        ;
+
+Tm      : Factor TmPrime
+        ;
+
+TmPrime : '*' Factor TmPrime
+        | '/' Factor TmPrime
+        |
+        ;
+
+Factor  : NUMBER
+        |'(' Calc ')'
+        |'|' Calc '|'
         ;
 
 
