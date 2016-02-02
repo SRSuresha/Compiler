@@ -32,7 +32,7 @@ S       : PROCEDURE ProcedureStarts MainProcedures Procedures
         | Exprs                                      
         ;
 
-ProcedureStarts: ID '(' Parameter ')' RETURN Type '{' Stmts ReturnStmt '}' Procedures PROCEDURE ProcedureStarts
+ProcedureStarts: ID '(' Parameter ')' RETURN Type '{' Stmts ReturnStmt '}' PROCEDURE ProcedureStarts
         | 
         ;
 
@@ -44,16 +44,17 @@ MainProcedures: MAIN '('  ')'RETURN Type '{' Stmts ReturnStmt '}'
         ;
 
 Stmts   : LHS '=' Exprs ';' Stmts
-        | ID  '=' ID '(' Arguments ')' ';' Stmts
         | IfelseStmt Stmts
         | WhileStmt Stmts
-        | Procedures Stmts
+        | PROCEDURE ID '(' Parameter ')' RETURN Type '{' Stmts ReturnStmt '}' Stmts
         | VAR ID IDPrime ':' DeclareType ';' Stmts
         |
         ;
 
+
 Exprs   : NULLX
         | ID Sbarket
+        | '&' ID 
         | '&' ID Sbarket
         | '^' ID
         | '^' '('ID '+' NUMBER ')'
@@ -62,67 +63,23 @@ Exprs   : NULLX
         | STRINGV
         | CHARV
         | NumExprs
-        | '|' Exprs '|'
         | ID '(' Arguments ')'
         | BoolStmt
         ;
 
-WhileStmt: WHILE '(' BoolStmt ')' '{' Stmts '}'
+LHS     : ID Sbarket
+        | ID
+        | '&' ID Sbarket
+        | '&' ID
+        | '^' ID
         ;
 
-
+Sbarket : '[' NumExprs ']'
+        ;
 COP     : EQ | GE | LE | NEQ | '>' | '<'
         ;
 
 AOP     : '+' | '-' | '*' |'/'
-        ;
-
-Sbarket : '[' NumExprs ']'
-        |
-        ;
-
-NumExprs: Factor TermPrime
-        ;
-
-Term    : ID
-        | NUMBER
-
-TermPrime:  AOP Factor TermPrime
-        |
-        ;
-
-Factor  : Term
-        | '(' NumExprs ')'
-        | '|' NumExprs '|'
-
-LHS     : ID Sbarket 
-        | '&' ID Sbarket
-        | '^' ID
-        ;
-
-Arguments : Exprs ArgumentsPrime
-        |
-        ;
-
-ArgumentsPrime: ',' Exprs ArgumentsPrime
-        |
-        ;
-
-
-ReturnStmt : RETURN Exprs
-        ;
-
-Parameter: ID IDPrime ':' Type ParameterPrime
-        |
-        ;
-
-ParameterPrime : ';' ID IDPrime ':' Type ParameterPrime
-        |
-        ;
-
-IDPrime : ',' ID IDPrime
-        |   
-        ;
 
 Type    : BOOLEAN
         | INTEGER
@@ -139,7 +96,26 @@ DeclareType : BOOLEAN
         | STRING '[' NUMBER ']'
         ;
 
-IfelseStmt  : IF '(' BoolStmt ')'  '{' Stmts '}' ElseStmt
+NumExprs: Factor TermPrime
+        ;
+
+Term    : ID
+        | NUMBER
+
+TermPrime:  AOP Factor TermPrime
+        |
+        ;
+
+Factor  : Term
+        | '(' NumExprs ')'
+        | '|' NumExprs '|'
+
+Arguments : Exprs ArgumentsPrime
+        |
+        ;
+
+ArgumentsPrime: ',' Exprs ArgumentsPrime
+        |
         ;
 
 BoolStmt: Term COP Term Conditions
@@ -147,15 +123,35 @@ BoolStmt: Term COP Term Conditions
         | FALSE Conditions
         ; 
 
-ElseStmt: ELSE '{' Stmts '}'
-        |
-        ;
-
 Conditions: AND BoolStmt
         | OR BoolStmt
         |
         ;
 
+ReturnStmt : RETURN Exprs
+        ;
+
+Parameter: ID IDPrime ':' Type ParameterPrime
+        |
+        ;
+
+ParameterPrime : ';' ID IDPrime ':' Type ParameterPrime
+        |
+        ;
+
+IDPrime : ',' ID IDPrime
+        |   
+        ;
+
+IfelseStmt  : IF '(' BoolStmt ')'  '{' Stmts '}' ElseStmt
+        ;
+
+ElseStmt: ELSE '{' Stmts '}'
+        |
+        ;
+
+WhileStmt: WHILE '(' BoolStmt ')' '{' Stmts '}'
+        ;
 
 
 %%
