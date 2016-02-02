@@ -28,8 +28,7 @@
  *  the grammar for the language for this project here.
  */
 		
-S       : PROCEDURE ProcedureStarts MainProcedures Procedures
-        | Exprs                                      
+S       : PROCEDURE ProcedureStarts MainProcedures Procedures       
         ;
 
 ProcedureStarts: ID '(' Parameter ')' RETURN Type '{' Stmts ReturnStmt '}' PROCEDURE ProcedureStarts
@@ -139,7 +138,7 @@ ParameterPrime : ';' ID IDPrime ':' Type ParameterPrime
         |
         ;
 
-IDPrime : ',' ID IDPrime
+IDPrime : ',' ID IDPrime {printf("IDPRIME");}
         |   
         ;
 

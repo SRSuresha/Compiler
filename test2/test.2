@@ -1,0 +1,22 @@
+procedure Main() return integer
+{
+	var j, k, m, n: integer; 
+	var x: string[19];
+	var b: boolean;
+
+        procedure foo( inc : integer ) return boolean 
+        {
+                m = m + inc;
+		return true;
+        }
+
+	j = 2;
+	k = - j;
+	m = 100 - k * k;
+	x[1] = foo( 1 );
+	n = printint( m );
+	x = "this is a string['5']\n";
+	x[1] = 'h';
+        return x[7+1];
+}
+
