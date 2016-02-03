@@ -31,15 +31,15 @@
 S       : PROCEDURE ProcedureStarts MainProcedures Procedures       
         ;
 
-ProcedureStarts: ID '(' Parameter ')' RETURN Type '{' Stmts ReturnStmt '}' PROCEDURE ProcedureStarts
+ProcedureStarts: ID '(' Parameter ')' RETURN ReturnType '{' Stmts ReturnStmt '}' PROCEDURE ProcedureStarts
         | 
         ;
 
-Procedures : PROCEDURE ID '(' Parameter ')' RETURN Type '{' Stmts ReturnStmt '}' Procedures
+Procedures : PROCEDURE ID '(' Parameter ')' RETURN ReturnType '{' Stmts ReturnStmt '}' Procedures
         |
         ;
 
-MainProcedures: MAIN '('  ')'RETURN Type '{' Stmts ReturnStmt '}'
+MainProcedures: MAIN '('  ')'RETURN ReturnType '{' Stmts ReturnStmt '}'
         ;
 
 Stmts   : LHS '=' Exprs ';' Stmts
@@ -55,15 +55,14 @@ Exprs   : NULLX
         | ID Sbarket
         | '&' ID 
         | '&' ID Sbarket
-        | '^' ID
-        | '^' '('ID '+' NUMBER ')'
-        | '^' '('ID '-' NUMBER ')'
+        | '^' '('ID '+' NumExprs ')'
+        | '^' '('ID '-' NumExprs ')'
         | '^' '(' ID ')'
         | STRINGV
         | CHARV
         | NumExprs
         | ID '(' Arguments ')'
-        | BoolStmt
+        | BoolExpr
         ;
 
 LHS     : ID Sbarket
@@ -75,6 +74,8 @@ LHS     : ID Sbarket
 
 Sbarket : '[' NumExprs ']'
         ;
+
+
 COP     : EQ | GE | LE | NEQ | '>' | '<'
         ;
 
@@ -85,7 +86,14 @@ Type    : BOOLEAN
         | CHAR
         | CHARPTR
         | STRING
-        |INTPTR
+        | INTPTR
+        ;
+
+ReturnType  : BOOLEAN
+        | INTEGER
+        | CHAR
+        | CHARPTR
+        | INTPTR
         ;
 
 DeclareType : BOOLEAN
@@ -100,6 +108,8 @@ NumExprs: Factor TermPrime
 
 Term    : ID
         | NUMBER
+        | '^' ID
+        ;
 
 TermPrime:  AOP Factor TermPrime
         |
@@ -117,17 +127,17 @@ ArgumentsPrime: ',' Exprs ArgumentsPrime
         |
         ;
 
-BoolStmt: Term COP Term Conditions
+BoolExpr: Term COP Term Conditions
         | TRUE Conditions
         | FALSE Conditions
         ; 
 
-Conditions: AND BoolStmt
-        | OR BoolStmt
+Conditions: AND BoolExpr
+        | OR BoolExpr
         |
         ;
 
-ReturnStmt : RETURN Exprs
+ReturnStmt : RETURN Exprs ';'
         ;
 
 Parameter: ID IDPrime ':' Type ParameterPrime
@@ -142,14 +152,14 @@ IDPrime : ',' ID IDPrime {printf("IDPRIME");}
         |   
         ;
 
-IfelseStmt  : IF '(' BoolStmt ')'  '{' Stmts '}' ElseStmt
+IfelseStmt  : IF '(' BoolExpr ')'  '{' Stmts '}' ElseStmt
         ;
 
 ElseStmt: ELSE '{' Stmts '}'
         |
         ;
 
-WhileStmt: WHILE '(' BoolStmt ')' '{' Stmts '}'
+WhileStmt: WHILE '(' BoolExpr ')' '{' Stmts '}'
         ;
 
 

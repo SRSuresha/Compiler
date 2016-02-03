@@ -15,10 +15,8 @@
  *  below for ALL tokens defined in the manual. You can choose not to use
  *  definitions here.
  */
-/**
- %token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
- %token NUMBER EQ GE LE NEQ WHILE ADDRESS CHARV
-*/
+
+
 
 
 /** The example below is very simple, but it shows almost everything you will
@@ -57,14 +55,12 @@
 "||"				{return OR;}
 [\"].*[\"]			{return STRINGV;}
 [\'].[\']			{return CHARV;}
-"&"[a-zA-Z][0-9a-zA-Z_]* 	{return ADDRESS;}
-"^"[a-zA-Z][0-9a-zA-Z_]*	{return PVALUE;}
-[\/\=\>\<\-\!\+\*\&\^\;\:\,\| \{ \}\(\)\[\] ]  	{return *yytext; }
+[\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 [0-7][0-7]* 				{return NUMBER;}
 "0X"[0-9A-F][0-9A-F]* 		{return NUMBER;}
 [+|-]?[0-9][0-9]*         	{return NUMBER; }
 [a-zA-Z][0-9a-zA-Z_]*		{return ID;}
-[ \t\n]             ; /* skip whitespace */
+[ \t\n]				; /* skip whitespace */
 "(%".*"%)"			; /* skip comment */
 
 .                   yyerror((char *) "invalid character");
