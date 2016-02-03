@@ -10,12 +10,44 @@ procedure Main() return integer
 		return true;
         }
 
-	j = 2;
+	j = 2 + -7;
 	m = 100 - k * k;
+	m = ^(j+2);
+	m = &m[7+4];
+	m = &m;
+	m = !false;
 	x[1] = foo( 1 );
 	n = printint( m );
 	x = "this is a string['5']\n";
 	x[1] = 'h';
-        return x[7+1];
+	while(a>b){
+		b = b+4;
+	}
+
+		if(3 > 2)
+	{
+	    i = 5; (% i has been declared above%)
+	}
+
+	if(true) { j = 3; }
+	else { k = 4; }
+
+	while(true) { l = 2; }
+	var x : charptr;        
+
+	var x : integer;
+	x = 0111b;
+	var y : intptr;
+	y = &x;
+	x = 0X02A;
+
+	var x : charptr;
+	var y : string[10];
+	var z : char;
+	y = "foobar";
+	x = &y[5];     
+	z = ^(x - 5);      
+	y = "barfoo";     
+    return x[7 + 2];
 }
 

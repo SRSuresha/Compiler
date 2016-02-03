@@ -58,7 +58,8 @@
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 [0-7][0-7]* 				{return NUMBER;}
 "0X"[0-9A-F][0-9A-F]* 		{return NUMBER;}
-[+|-]?[0-9][0-9]*         	{return NUMBER; }
+[0-9][0-9]*         		{return NUMBER; }
+[0-1][0-1]*"b"				{return NUMBER; }
 [a-zA-Z][0-9a-zA-Z_]*		{return ID;}
 [ \t\n]				; /* skip whitespace */
 "(%".*"%)"			; /* skip comment */
