@@ -30,7 +30,6 @@
 
 %%
 
-
 "Main"				{return MAIN;}
 "boolean"			{return BOOLEAN;}
 "char"				{return CHAR;}
@@ -62,7 +61,20 @@
 [0-1][0-1]*"b"				{return NUMBER; }
 [a-zA-Z][0-9a-zA-Z_]*		{return ID;}
 [ \t\n]				; /* skip whitespace */
-"(%".*"%)"			; /* skip comment */
+"(%" 						{
+								char current = yyinput();
+								char last = ' ';
+								while(true){
+									last = current;
+									current = yyinput();
+									if(last == '%' && current == ')'){
+										break;
+									}
+									if(current == EOF)
+										yyerror((char *) "comment not ended");
+								}
+							}
+
 
 .                   yyerror((char *) "invalid character");
 

@@ -17,10 +17,11 @@
  */
 
  %token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
- %token NUMBER  AND OR STRINGV CHARV TRUE FALSE
+ %token NUMBER  AND OR STRINGV CHARV TRUE FALSE 
  %left '<' '>' '=' NEQ LE GE EQ 
  %left '+' '-'
  %left '*' '/'
+ %right Dummy 
 %%
 
 /** WRITE ME:
@@ -28,57 +29,57 @@
  *  the grammar for the language for this project here.
  */
 		
-S       : PROCEDURE ProcedureStarts MainProcedures Procedures       
+s       : PROCEDURE procedureStarts mainProcedures procedures 
         ;
 
-ProcedureStarts: ID '(' Parameter ')' RETURN ReturnType '{' Stmts ReturnStmt '}' PROCEDURE ProcedureStarts
+procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
         | 
         ;
 
-Procedures : PROCEDURE ID '(' Parameter ')' RETURN ReturnType '{' Stmts ReturnStmt '}' Procedures
+procedures : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures
         |
         ;
 
-MainProcedures: MAIN '('  ')'RETURN ReturnType '{' Stmts ReturnStmt '}'
+mainProcedures: MAIN '('  ')'RETURN returnType '{' stmts returnStmt '}'
         ;
 
-Stmts   : Lhs '=' Exprs ';' Stmts       {printf("LHS '=' Exprs ';' Stmts\n");}
-        | Lhs '=' ID '(' Arguments ')' ';' Stmts
-        | IfelseStmt Stmts
-        | WhileStmt Stmts
-        | PROCEDURE ID '(' Parameter ')' RETURN Type '{' Stmts ReturnStmt '}' Stmts
-        | VAR ID IDPrime ':' DeclareType ';' Stmts
+stmts   : lhs '=' exprs ';' stmts       {printf("LHS '=' Exprs ';' Stmts\n");}
+        | lhs '=' ID '(' arguments ')' ';' stmts
+        | ifelseStmt stmts
+        | whileStmt stmts
+        | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts
+        | VAR ID idPrime ':' declareType ';' stmts
         |
         ;
 
 
-Exprs   : NULLX
-        | ID Sbarket                    {printf("ID Sbarket\n");}
+exprs   : NULLX
+        | ID sbarket                    {printf("ID Sbarket\n");}
         | '&' ID                        {printf("& ID\n");}
-        | '&' ID Sbarket                {printf("'&' ID Sbarket\n");}
+        | '&' ID sbarket                {printf("'&' ID Sbarket\n");}
         | STRINGV                       {printf("STRINGV \n");}
         | CHARV                         {printf("CHARV \n");}
-        | NumExprs                      {printf("NumExprs \n");}
-        | BoolExpr                      {printf("BoolExpr\n");}
+        | numExprs                      {printf("NumExprs \n");}
+        | boolExpr                      {printf("BoolExpr\n");}
         ;
 
-Lhs     : ID Sbarket
+lhs     : ID sbarket
         | ID
-        | '&' ID Sbarket
+        | '&' ID sbarket
         | '&' ID
         | '^' ID
         ;
 
-Sbarket : '[' NumExprs ']'
+sbarket : '[' numExprs ']'
         ;
 
 
-COP     : EQ | GE | LE | NEQ | '>' | '<'
+cop     : EQ | GE | LE | NEQ | '>' | '<'
         ;
 
-AOP     : '+' | '-' | '*' |'/'
+aop     : '+' | '-' | '*' |'/'
 
-Type    : BOOLEAN
+type    : BOOLEAN
         | INTEGER
         | CHAR
         | CHARPTR
@@ -86,14 +87,14 @@ Type    : BOOLEAN
         | INTPTR
         ;
 
-ReturnType  : BOOLEAN
+returnType  : BOOLEAN
         | INTEGER
         | CHAR
         | CHARPTR
         | INTPTR
         ;
 
-DeclareType : BOOLEAN
+declareType : BOOLEAN
         | INTEGER
         | CHAR
         | CHARPTR
@@ -101,68 +102,68 @@ DeclareType : BOOLEAN
         | STRING '[' NUMBER ']'
         ;
 
-NumExprs: Factor TermPrime
+numExprs: factor termPrime
         ;
 
-Term    : ID
+term    : ID
         | NUMBER
         | '^' ID
-        | '^' '('ID '+' NumExprs ')'    {printf("'^' '('ID '+' NumExprs ')'\n");}
-        | '^' '('ID '-' NumExprs ')'    {printf("'^' '('ID '-' NumExprs ')' \n");}
+        | '^' '('ID '+' numExprs ')'    {printf("'^' '('ID '+' NumExprs ')'\n");}
+        | '^' '('ID '-' numExprs ')'    {printf("'^' '('ID '-' NumExprs ')' \n");}
         | '^' '(' ID ')'                {printf("'^' '(' ID ')'\n");}
-        | '-' Term
+        | '-' term                      %prec Dummy
         ;
 
-TermPrime:  AOP Factor TermPrime            {printf("AOP Factor TermPrime\n");}
+termPrime:  aop factor termPrime            {printf("AOP Factor TermPrime\n");}
         |
         ;
 
-Factor  : Term                              {printf("Term\n");}
-        | '(' NumExprs ')'
-        | '|' NumExprs '|'
+factor  : term                              {printf("Term\n");}
+        | '(' numExprs ')'
+        | '|' numExprs '|'
 
-Arguments : Exprs ArgumentsPrime
+arguments : exprs argumentsPrime
         |
         ;
 
-ArgumentsPrime: ',' Exprs ArgumentsPrime
+argumentsPrime: ',' exprs argumentsPrime
         |
         ;
 
-BoolExpr: Term COP Term Conditions
-        | TRUE Conditions
-        | FALSE Conditions
-        | '!' BoolExpr
+boolExpr: term cop term conditions
+        | TRUE conditions
+        | FALSE conditions
+        | '!' boolExpr
         ; 
 
-Conditions: AND BoolExpr
-        | OR BoolExpr
+conditions: AND boolExpr
+        | OR boolExpr
         |
         ;
 
-ReturnStmt : RETURN Exprs ';' {printf("return exprs\n");}
+returnStmt : RETURN exprs ';' {printf("return exprs\n");}
         ;
 
-Parameter: ID IDPrime ':' Type ParameterPrime
+parameter: ID idPrime ':' type parameterPrime
         |
         ;
 
-ParameterPrime : ';' ID IDPrime ':' Type ParameterPrime
+parameterPrime : ';' ID idPrime ':' type parameterPrime
         |
         ;
 
-IDPrime : ',' ID IDPrime 
+idPrime : ',' ID idPrime 
         |   
         ;
 
-IfelseStmt  : IF '(' BoolExpr ')'  '{' Stmts '}' ElseStmt
+ifelseStmt  : IF '(' boolExpr ')'  '{' stmts '}' elseStmt
         ;
 
-ElseStmt: ELSE '{' Stmts '}'
+elseStmt: ELSE '{' stmts '}'
         |
         ;
 
-WhileStmt: WHILE '(' BoolExpr ')' '{' Stmts '}'
+whileStmt: WHILE '(' boolExpr ')' '{' stmts '}'
         ;
 
 
