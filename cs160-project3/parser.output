@@ -1,0 +1,2248 @@
+Grammar
+
+    0 $accept: s $end
+
+    1 s: PROCEDURE procedureStarts mainProcedures procedures
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+    3                | %empty
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures
+    5           | %empty
+
+    6 mainProcedures: MAIN '(' ')' RETURN returnType '{' stmts returnStmt '}'
+
+    7 stmts: lhs '=' exprs ';' stmts
+    8      | lhs '=' ID '(' arguments ')' ';' stmts
+    9      | ifelseStmt stmts
+   10      | whileStmt stmts
+   11      | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts
+   12      | VAR ID idPrime ':' declareType ';' stmts
+   13      | %empty
+
+   14 exprs: NULLX
+   15      | ID sbarket
+   16      | '&' ID
+   17      | '&' ID sbarket
+   18      | STRINGV
+   19      | CHARV
+   20      | numExprs
+   21      | boolExpr
+
+   22 lhs: ID sbarket
+   23    | ID
+   24    | '&' ID sbarket
+   25    | '&' ID
+   26    | '^' ID
+
+   27 sbarket: '[' numExprs ']'
+
+   28 cop: EQ
+   29    | GE
+   30    | LE
+   31    | NEQ
+   32    | '>'
+   33    | '<'
+
+   34 aop: '+'
+   35    | '-'
+   36    | '*'
+   37    | '/'
+
+   38 type: BOOLEAN
+   39     | INTEGER
+   40     | CHAR
+   41     | CHARPTR
+   42     | STRING
+   43     | INTPTR
+
+   44 returnType: BOOLEAN
+   45           | INTEGER
+   46           | CHAR
+   47           | CHARPTR
+   48           | INTPTR
+
+   49 declareType: BOOLEAN
+   50            | INTEGER
+   51            | CHAR
+   52            | CHARPTR
+   53            | INTPTR
+   54            | STRING '[' NUMBER ']'
+
+   55 numExprs: factor termPrime
+
+   56 term: ID
+   57     | NUMBER
+   58     | '^' ID
+   59     | '^' '(' ID '+' numExprs ')'
+   60     | '^' '(' ID '-' numExprs ')'
+   61     | '^' '(' ID ')'
+   62     | '-' term
+
+   63 termPrime: aop factor termPrime
+   64          | %empty
+
+   65 factor: term
+   66       | '(' numExprs ')'
+   67       | '|' numExprs '|'
+
+   68 arguments: exprs argumentsPrime
+   69          | %empty
+
+   70 argumentsPrime: ',' exprs argumentsPrime
+   71               | %empty
+
+   72 boolExpr: term cop term conditions
+   73         | TRUE conditions
+   74         | FALSE conditions
+   75         | '!' boolExpr
+
+   76 conditions: AND boolExpr
+   77           | OR boolExpr
+   78           | %empty
+
+   79 returnStmt: RETURN exprs ';'
+
+   80 parameter: ID idPrime ':' type parameterPrime
+   81          | %empty
+
+   82 parameterPrime: ';' ID idPrime ':' type parameterPrime
+   83               | %empty
+
+   84 idPrime: ',' ID idPrime
+   85        | %empty
+
+   86 ifelseStmt: IF '(' boolExpr ')' '{' stmts '}' elseStmt
+
+   87 elseStmt: ELSE '{' stmts '}'
+   88         | %empty
+
+   89 whileStmt: WHILE '(' boolExpr ')' '{' stmts '}'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33) 75
+'&' (38) 16 17 24 25
+'(' (40) 2 4 6 8 11 59 60 61 66 86 89
+')' (41) 2 4 6 8 11 59 60 61 66 86 89
+'*' (42) 36
+'+' (43) 34 59
+',' (44) 70 84
+'-' (45) 35 60 62
+'/' (47) 37
+':' (58) 12 80 82
+';' (59) 7 8 12 79 82
+'<' (60) 33
+'=' (61) 7 8
+'>' (62) 32
+'[' (91) 27 54
+']' (93) 27 54
+'^' (94) 26 58 59 60 61
+'{' (123) 2 4 6 11 86 87 89
+'|' (124) 67
+'}' (125) 2 4 6 11 86 87 89
+error (256)
+MAIN (258) 6
+BOOLEAN (259) 38 44 49
+CHAR (260) 40 46 51
+INTEGER (261) 39 45 50
+STRING (262) 42 54
+INTPTR (263) 43 48 53
+CHARPTR (264) 41 47 52
+IF (265) 86
+ELSE (266) 87
+WHILE (267) 89
+VAR (268) 12
+PROCEDURE (269) 1 2 4 11
+RETURN (270) 2 4 6 11 79
+ID (271) 2 4 8 11 12 15 16 17 22 23 24 25 26 56 58 59 60 61 80 82 84
+NULLX (272) 14
+NUMBER (273) 54 57
+AND (274) 76
+OR (275) 77
+STRINGV (276) 18
+CHARV (277) 19
+TRUE (278) 73
+FALSE (279) 74
+NEQ (280) 31
+LE (281) 30
+GE (282) 29
+EQ (283) 28
+Dummy (284)
+
+
+Nonterminals, with rules where they appear
+
+$accept (50)
+    on left: 0
+s (51)
+    on left: 1, on right: 0
+procedureStarts (52)
+    on left: 2 3, on right: 1 2
+procedures (53)
+    on left: 4 5, on right: 1 4
+mainProcedures (54)
+    on left: 6, on right: 1
+stmts (55)
+    on left: 7 8 9 10 11 12 13, on right: 2 4 6 7 8 9 10 11 12 86 87
+    89
+exprs (56)
+    on left: 14 15 16 17 18 19 20 21, on right: 7 68 70 79
+lhs (57)
+    on left: 22 23 24 25 26, on right: 7 8
+sbarket (58)
+    on left: 27, on right: 15 17 22 24
+cop (59)
+    on left: 28 29 30 31 32 33, on right: 72
+aop (60)
+    on left: 34 35 36 37, on right: 63
+type (61)
+    on left: 38 39 40 41 42 43, on right: 11 80 82
+returnType (62)
+    on left: 44 45 46 47 48, on right: 2 4 6
+declareType (63)
+    on left: 49 50 51 52 53 54, on right: 12
+numExprs (64)
+    on left: 55, on right: 20 27 59 60 66 67
+term (65)
+    on left: 56 57 58 59 60 61 62, on right: 62 65 72
+termPrime (66)
+    on left: 63 64, on right: 55 63
+factor (67)
+    on left: 65 66 67, on right: 55 63
+arguments (68)
+    on left: 68 69, on right: 8
+argumentsPrime (69)
+    on left: 70 71, on right: 68 70
+boolExpr (70)
+    on left: 72 73 74 75, on right: 21 75 76 77 86 89
+conditions (71)
+    on left: 76 77 78, on right: 72 73 74
+returnStmt (72)
+    on left: 79, on right: 2 4 6 11
+parameter (73)
+    on left: 80 81, on right: 2 4 11
+parameterPrime (74)
+    on left: 82 83, on right: 80 82
+idPrime (75)
+    on left: 84 85, on right: 12 80 82 84
+ifelseStmt (76)
+    on left: 86, on right: 9
+elseStmt (77)
+    on left: 87 88, on right: 86
+whileStmt (78)
+    on left: 89, on right: 10
+
+
+State 0
+
+    0 $accept: . s $end
+
+    PROCEDURE  shift, and go to state 1
+
+    s  go to state 2
+
+
+State 1
+
+    1 s: PROCEDURE . procedureStarts mainProcedures procedures
+
+    ID  shift, and go to state 3
+
+    $default  reduce using rule 3 (procedureStarts)
+
+    procedureStarts  go to state 4
+
+
+State 2
+
+    0 $accept: s . $end
+
+    $end  shift, and go to state 5
+
+
+State 3
+
+    2 procedureStarts: ID . '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+
+    '('  shift, and go to state 6
+
+
+State 4
+
+    1 s: PROCEDURE procedureStarts . mainProcedures procedures
+
+    MAIN  shift, and go to state 7
+
+    mainProcedures  go to state 8
+
+
+State 5
+
+    0 $accept: s $end .
+
+    $default  accept
+
+
+State 6
+
+    2 procedureStarts: ID '(' . parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+
+    ID  shift, and go to state 9
+
+    $default  reduce using rule 81 (parameter)
+
+    parameter  go to state 10
+
+
+State 7
+
+    6 mainProcedures: MAIN . '(' ')' RETURN returnType '{' stmts returnStmt '}'
+
+    '('  shift, and go to state 11
+
+
+State 8
+
+    1 s: PROCEDURE procedureStarts mainProcedures . procedures
+
+    PROCEDURE  shift, and go to state 12
+
+    $default  reduce using rule 5 (procedures)
+
+    procedures  go to state 13
+
+
+State 9
+
+   80 parameter: ID . idPrime ':' type parameterPrime
+
+    ','  shift, and go to state 14
+
+    $default  reduce using rule 85 (idPrime)
+
+    idPrime  go to state 15
+
+
+State 10
+
+    2 procedureStarts: ID '(' parameter . ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+
+    ')'  shift, and go to state 16
+
+
+State 11
+
+    6 mainProcedures: MAIN '(' . ')' RETURN returnType '{' stmts returnStmt '}'
+
+    ')'  shift, and go to state 17
+
+
+State 12
+
+    4 procedures: PROCEDURE . ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures
+
+    ID  shift, and go to state 18
+
+
+State 13
+
+    1 s: PROCEDURE procedureStarts mainProcedures procedures .
+
+    $default  reduce using rule 1 (s)
+
+
+State 14
+
+   84 idPrime: ',' . ID idPrime
+
+    ID  shift, and go to state 19
+
+
+State 15
+
+   80 parameter: ID idPrime . ':' type parameterPrime
+
+    ':'  shift, and go to state 20
+
+
+State 16
+
+    2 procedureStarts: ID '(' parameter ')' . RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+
+    RETURN  shift, and go to state 21
+
+
+State 17
+
+    6 mainProcedures: MAIN '(' ')' . RETURN returnType '{' stmts returnStmt '}'
+
+    RETURN  shift, and go to state 22
+
+
+State 18
+
+    4 procedures: PROCEDURE ID . '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures
+
+    '('  shift, and go to state 23
+
+
+State 19
+
+   84 idPrime: ',' ID . idPrime
+
+    ','  shift, and go to state 14
+
+    $default  reduce using rule 85 (idPrime)
+
+    idPrime  go to state 24
+
+
+State 20
+
+   80 parameter: ID idPrime ':' . type parameterPrime
+
+    BOOLEAN  shift, and go to state 25
+    CHAR     shift, and go to state 26
+    INTEGER  shift, and go to state 27
+    STRING   shift, and go to state 28
+    INTPTR   shift, and go to state 29
+    CHARPTR  shift, and go to state 30
+
+    type  go to state 31
+
+
+State 21
+
+    2 procedureStarts: ID '(' parameter ')' RETURN . returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+
+    BOOLEAN  shift, and go to state 32
+    CHAR     shift, and go to state 33
+    INTEGER  shift, and go to state 34
+    INTPTR   shift, and go to state 35
+    CHARPTR  shift, and go to state 36
+
+    returnType  go to state 37
+
+
+State 22
+
+    6 mainProcedures: MAIN '(' ')' RETURN . returnType '{' stmts returnStmt '}'
+
+    BOOLEAN  shift, and go to state 32
+    CHAR     shift, and go to state 33
+    INTEGER  shift, and go to state 34
+    INTPTR   shift, and go to state 35
+    CHARPTR  shift, and go to state 36
+
+    returnType  go to state 38
+
+
+State 23
+
+    4 procedures: PROCEDURE ID '(' . parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures
+
+    ID  shift, and go to state 9
+
+    $default  reduce using rule 81 (parameter)
+
+    parameter  go to state 39
+
+
+State 24
+
+   84 idPrime: ',' ID idPrime .
+
+    $default  reduce using rule 84 (idPrime)
+
+
+State 25
+
+   38 type: BOOLEAN .
+
+    $default  reduce using rule 38 (type)
+
+
+State 26
+
+   40 type: CHAR .
+
+    $default  reduce using rule 40 (type)
+
+
+State 27
+
+   39 type: INTEGER .
+
+    $default  reduce using rule 39 (type)
+
+
+State 28
+
+   42 type: STRING .
+
+    $default  reduce using rule 42 (type)
+
+
+State 29
+
+   43 type: INTPTR .
+
+    $default  reduce using rule 43 (type)
+
+
+State 30
+
+   41 type: CHARPTR .
+
+    $default  reduce using rule 41 (type)
+
+
+State 31
+
+   80 parameter: ID idPrime ':' type . parameterPrime
+
+    ';'  shift, and go to state 40
+
+    $default  reduce using rule 83 (parameterPrime)
+
+    parameterPrime  go to state 41
+
+
+State 32
+
+   44 returnType: BOOLEAN .
+
+    $default  reduce using rule 44 (returnType)
+
+
+State 33
+
+   46 returnType: CHAR .
+
+    $default  reduce using rule 46 (returnType)
+
+
+State 34
+
+   45 returnType: INTEGER .
+
+    $default  reduce using rule 45 (returnType)
+
+
+State 35
+
+   48 returnType: INTPTR .
+
+    $default  reduce using rule 48 (returnType)
+
+
+State 36
+
+   47 returnType: CHARPTR .
+
+    $default  reduce using rule 47 (returnType)
+
+
+State 37
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType . '{' stmts returnStmt '}' PROCEDURE procedureStarts
+
+    '{'  shift, and go to state 42
+
+
+State 38
+
+    6 mainProcedures: MAIN '(' ')' RETURN returnType . '{' stmts returnStmt '}'
+
+    '{'  shift, and go to state 43
+
+
+State 39
+
+    4 procedures: PROCEDURE ID '(' parameter . ')' RETURN returnType '{' stmts returnStmt '}' procedures
+
+    ')'  shift, and go to state 44
+
+
+State 40
+
+   82 parameterPrime: ';' . ID idPrime ':' type parameterPrime
+
+    ID  shift, and go to state 45
+
+
+State 41
+
+   80 parameter: ID idPrime ':' type parameterPrime .
+
+    $default  reduce using rule 80 (parameter)
+
+
+State 42
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType '{' . stmts returnStmt '}' PROCEDURE procedureStarts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 53
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 43
+
+    6 mainProcedures: MAIN '(' ')' RETURN returnType '{' . stmts returnStmt '}'
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 57
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 44
+
+    4 procedures: PROCEDURE ID '(' parameter ')' . RETURN returnType '{' stmts returnStmt '}' procedures
+
+    RETURN  shift, and go to state 58
+
+
+State 45
+
+   82 parameterPrime: ';' ID . idPrime ':' type parameterPrime
+
+    ','  shift, and go to state 14
+
+    $default  reduce using rule 85 (idPrime)
+
+    idPrime  go to state 59
+
+
+State 46
+
+   86 ifelseStmt: IF . '(' boolExpr ')' '{' stmts '}' elseStmt
+
+    '('  shift, and go to state 60
+
+
+State 47
+
+   89 whileStmt: WHILE . '(' boolExpr ')' '{' stmts '}'
+
+    '('  shift, and go to state 61
+
+
+State 48
+
+   12 stmts: VAR . ID idPrime ':' declareType ';' stmts
+
+    ID  shift, and go to state 62
+
+
+State 49
+
+   11 stmts: PROCEDURE . ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts
+
+    ID  shift, and go to state 63
+
+
+State 50
+
+   22 lhs: ID . sbarket
+   23    | ID .
+
+    '['  shift, and go to state 64
+
+    $default  reduce using rule 23 (lhs)
+
+    sbarket  go to state 65
+
+
+State 51
+
+   24 lhs: '&' . ID sbarket
+   25    | '&' . ID
+
+    ID  shift, and go to state 66
+
+
+State 52
+
+   26 lhs: '^' . ID
+
+    ID  shift, and go to state 67
+
+
+State 53
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts . returnStmt '}' PROCEDURE procedureStarts
+
+    RETURN  shift, and go to state 68
+
+    returnStmt  go to state 69
+
+
+State 54
+
+    7 stmts: lhs . '=' exprs ';' stmts
+    8      | lhs . '=' ID '(' arguments ')' ';' stmts
+
+    '='  shift, and go to state 70
+
+
+State 55
+
+    9 stmts: ifelseStmt . stmts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 71
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 56
+
+   10 stmts: whileStmt . stmts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 72
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 57
+
+    6 mainProcedures: MAIN '(' ')' RETURN returnType '{' stmts . returnStmt '}'
+
+    RETURN  shift, and go to state 68
+
+    returnStmt  go to state 73
+
+
+State 58
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN . returnType '{' stmts returnStmt '}' procedures
+
+    BOOLEAN  shift, and go to state 32
+    CHAR     shift, and go to state 33
+    INTEGER  shift, and go to state 34
+    INTPTR   shift, and go to state 35
+    CHARPTR  shift, and go to state 36
+
+    returnType  go to state 74
+
+
+State 59
+
+   82 parameterPrime: ';' ID idPrime . ':' type parameterPrime
+
+    ':'  shift, and go to state 75
+
+
+State 60
+
+   86 ifelseStmt: IF '(' . boolExpr ')' '{' stmts '}' elseStmt
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    TRUE    shift, and go to state 78
+    FALSE   shift, and go to state 79
+    '-'     shift, and go to state 80
+    '^'     shift, and go to state 81
+    '!'     shift, and go to state 82
+
+    term      go to state 83
+    boolExpr  go to state 84
+
+
+State 61
+
+   89 whileStmt: WHILE '(' . boolExpr ')' '{' stmts '}'
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    TRUE    shift, and go to state 78
+    FALSE   shift, and go to state 79
+    '-'     shift, and go to state 80
+    '^'     shift, and go to state 81
+    '!'     shift, and go to state 82
+
+    term      go to state 83
+    boolExpr  go to state 85
+
+
+State 62
+
+   12 stmts: VAR ID . idPrime ':' declareType ';' stmts
+
+    ','  shift, and go to state 14
+
+    $default  reduce using rule 85 (idPrime)
+
+    idPrime  go to state 86
+
+
+State 63
+
+   11 stmts: PROCEDURE ID . '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts
+
+    '('  shift, and go to state 87
+
+
+State 64
+
+   27 sbarket: '[' . numExprs ']'
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '('     shift, and go to state 88
+    '^'     shift, and go to state 81
+    '|'     shift, and go to state 89
+
+    numExprs  go to state 90
+    term      go to state 91
+    factor    go to state 92
+
+
+State 65
+
+   22 lhs: ID sbarket .
+
+    $default  reduce using rule 22 (lhs)
+
+
+State 66
+
+   24 lhs: '&' ID . sbarket
+   25    | '&' ID .
+
+    '['  shift, and go to state 64
+
+    $default  reduce using rule 25 (lhs)
+
+    sbarket  go to state 93
+
+
+State 67
+
+   26 lhs: '^' ID .
+
+    $default  reduce using rule 26 (lhs)
+
+
+State 68
+
+   79 returnStmt: RETURN . exprs ';'
+
+    ID       shift, and go to state 94
+    NULLX    shift, and go to state 95
+    NUMBER   shift, and go to state 77
+    STRINGV  shift, and go to state 96
+    CHARV    shift, and go to state 97
+    TRUE     shift, and go to state 78
+    FALSE    shift, and go to state 79
+    '-'      shift, and go to state 80
+    '('      shift, and go to state 88
+    '&'      shift, and go to state 98
+    '^'      shift, and go to state 81
+    '|'      shift, and go to state 89
+    '!'      shift, and go to state 82
+
+    exprs     go to state 99
+    numExprs  go to state 100
+    term      go to state 101
+    factor    go to state 92
+    boolExpr  go to state 102
+
+
+State 69
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt . '}' PROCEDURE procedureStarts
+
+    '}'  shift, and go to state 103
+
+
+State 70
+
+    7 stmts: lhs '=' . exprs ';' stmts
+    8      | lhs '=' . ID '(' arguments ')' ';' stmts
+
+    ID       shift, and go to state 104
+    NULLX    shift, and go to state 95
+    NUMBER   shift, and go to state 77
+    STRINGV  shift, and go to state 96
+    CHARV    shift, and go to state 97
+    TRUE     shift, and go to state 78
+    FALSE    shift, and go to state 79
+    '-'      shift, and go to state 80
+    '('      shift, and go to state 88
+    '&'      shift, and go to state 98
+    '^'      shift, and go to state 81
+    '|'      shift, and go to state 89
+    '!'      shift, and go to state 82
+
+    exprs     go to state 105
+    numExprs  go to state 100
+    term      go to state 101
+    factor    go to state 92
+    boolExpr  go to state 102
+
+
+State 71
+
+    9 stmts: ifelseStmt stmts .
+
+    $default  reduce using rule 9 (stmts)
+
+
+State 72
+
+   10 stmts: whileStmt stmts .
+
+    $default  reduce using rule 10 (stmts)
+
+
+State 73
+
+    6 mainProcedures: MAIN '(' ')' RETURN returnType '{' stmts returnStmt . '}'
+
+    '}'  shift, and go to state 106
+
+
+State 74
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN returnType . '{' stmts returnStmt '}' procedures
+
+    '{'  shift, and go to state 107
+
+
+State 75
+
+   82 parameterPrime: ';' ID idPrime ':' . type parameterPrime
+
+    BOOLEAN  shift, and go to state 25
+    CHAR     shift, and go to state 26
+    INTEGER  shift, and go to state 27
+    STRING   shift, and go to state 28
+    INTPTR   shift, and go to state 29
+    CHARPTR  shift, and go to state 30
+
+    type  go to state 108
+
+
+State 76
+
+   56 term: ID .
+
+    $default  reduce using rule 56 (term)
+
+
+State 77
+
+   57 term: NUMBER .
+
+    $default  reduce using rule 57 (term)
+
+
+State 78
+
+   73 boolExpr: TRUE . conditions
+
+    AND  shift, and go to state 109
+    OR   shift, and go to state 110
+
+    $default  reduce using rule 78 (conditions)
+
+    conditions  go to state 111
+
+
+State 79
+
+   74 boolExpr: FALSE . conditions
+
+    AND  shift, and go to state 109
+    OR   shift, and go to state 110
+
+    $default  reduce using rule 78 (conditions)
+
+    conditions  go to state 112
+
+
+State 80
+
+   62 term: '-' . term
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '^'     shift, and go to state 81
+
+    term  go to state 113
+
+
+State 81
+
+   58 term: '^' . ID
+   59     | '^' . '(' ID '+' numExprs ')'
+   60     | '^' . '(' ID '-' numExprs ')'
+   61     | '^' . '(' ID ')'
+
+    ID   shift, and go to state 114
+    '('  shift, and go to state 115
+
+
+State 82
+
+   75 boolExpr: '!' . boolExpr
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    TRUE    shift, and go to state 78
+    FALSE   shift, and go to state 79
+    '-'     shift, and go to state 80
+    '^'     shift, and go to state 81
+    '!'     shift, and go to state 82
+
+    term      go to state 83
+    boolExpr  go to state 116
+
+
+State 83
+
+   72 boolExpr: term . cop term conditions
+
+    '<'  shift, and go to state 117
+    '>'  shift, and go to state 118
+    NEQ  shift, and go to state 119
+    LE   shift, and go to state 120
+    GE   shift, and go to state 121
+    EQ   shift, and go to state 122
+
+    cop  go to state 123
+
+
+State 84
+
+   86 ifelseStmt: IF '(' boolExpr . ')' '{' stmts '}' elseStmt
+
+    ')'  shift, and go to state 124
+
+
+State 85
+
+   89 whileStmt: WHILE '(' boolExpr . ')' '{' stmts '}'
+
+    ')'  shift, and go to state 125
+
+
+State 86
+
+   12 stmts: VAR ID idPrime . ':' declareType ';' stmts
+
+    ':'  shift, and go to state 126
+
+
+State 87
+
+   11 stmts: PROCEDURE ID '(' . parameter ')' RETURN type '{' stmts returnStmt '}' stmts
+
+    ID  shift, and go to state 9
+
+    $default  reduce using rule 81 (parameter)
+
+    parameter  go to state 127
+
+
+State 88
+
+   66 factor: '(' . numExprs ')'
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '('     shift, and go to state 88
+    '^'     shift, and go to state 81
+    '|'     shift, and go to state 89
+
+    numExprs  go to state 128
+    term      go to state 91
+    factor    go to state 92
+
+
+State 89
+
+   67 factor: '|' . numExprs '|'
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '('     shift, and go to state 88
+    '^'     shift, and go to state 81
+    '|'     shift, and go to state 89
+
+    numExprs  go to state 129
+    term      go to state 91
+    factor    go to state 92
+
+
+State 90
+
+   27 sbarket: '[' numExprs . ']'
+
+    ']'  shift, and go to state 130
+
+
+State 91
+
+   65 factor: term .
+
+    $default  reduce using rule 65 (factor)
+
+
+State 92
+
+   55 numExprs: factor . termPrime
+
+    '+'  shift, and go to state 131
+    '-'  shift, and go to state 132
+    '*'  shift, and go to state 133
+    '/'  shift, and go to state 134
+
+    $default  reduce using rule 64 (termPrime)
+
+    aop        go to state 135
+    termPrime  go to state 136
+
+
+State 93
+
+   24 lhs: '&' ID sbarket .
+
+    $default  reduce using rule 24 (lhs)
+
+
+State 94
+
+   15 exprs: ID . sbarket
+   56 term: ID .
+
+    '['  shift, and go to state 64
+
+    $default  reduce using rule 56 (term)
+
+    sbarket  go to state 137
+
+
+State 95
+
+   14 exprs: NULLX .
+
+    $default  reduce using rule 14 (exprs)
+
+
+State 96
+
+   18 exprs: STRINGV .
+
+    $default  reduce using rule 18 (exprs)
+
+
+State 97
+
+   19 exprs: CHARV .
+
+    $default  reduce using rule 19 (exprs)
+
+
+State 98
+
+   16 exprs: '&' . ID
+   17      | '&' . ID sbarket
+
+    ID  shift, and go to state 138
+
+
+State 99
+
+   79 returnStmt: RETURN exprs . ';'
+
+    ';'  shift, and go to state 139
+
+
+State 100
+
+   20 exprs: numExprs .
+
+    $default  reduce using rule 20 (exprs)
+
+
+State 101
+
+   65 factor: term .
+   72 boolExpr: term . cop term conditions
+
+    '<'  shift, and go to state 117
+    '>'  shift, and go to state 118
+    NEQ  shift, and go to state 119
+    LE   shift, and go to state 120
+    GE   shift, and go to state 121
+    EQ   shift, and go to state 122
+
+    $default  reduce using rule 65 (factor)
+
+    cop  go to state 123
+
+
+State 102
+
+   21 exprs: boolExpr .
+
+    $default  reduce using rule 21 (exprs)
+
+
+State 103
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' . PROCEDURE procedureStarts
+
+    PROCEDURE  shift, and go to state 140
+
+
+State 104
+
+    8 stmts: lhs '=' ID . '(' arguments ')' ';' stmts
+   15 exprs: ID . sbarket
+   56 term: ID .
+
+    '('  shift, and go to state 141
+    '['  shift, and go to state 64
+
+    $default  reduce using rule 56 (term)
+
+    sbarket  go to state 137
+
+
+State 105
+
+    7 stmts: lhs '=' exprs . ';' stmts
+
+    ';'  shift, and go to state 142
+
+
+State 106
+
+    6 mainProcedures: MAIN '(' ')' RETURN returnType '{' stmts returnStmt '}' .
+
+    $default  reduce using rule 6 (mainProcedures)
+
+
+State 107
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN returnType '{' . stmts returnStmt '}' procedures
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 143
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 108
+
+   82 parameterPrime: ';' ID idPrime ':' type . parameterPrime
+
+    ';'  shift, and go to state 40
+
+    $default  reduce using rule 83 (parameterPrime)
+
+    parameterPrime  go to state 144
+
+
+State 109
+
+   76 conditions: AND . boolExpr
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    TRUE    shift, and go to state 78
+    FALSE   shift, and go to state 79
+    '-'     shift, and go to state 80
+    '^'     shift, and go to state 81
+    '!'     shift, and go to state 82
+
+    term      go to state 83
+    boolExpr  go to state 145
+
+
+State 110
+
+   77 conditions: OR . boolExpr
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    TRUE    shift, and go to state 78
+    FALSE   shift, and go to state 79
+    '-'     shift, and go to state 80
+    '^'     shift, and go to state 81
+    '!'     shift, and go to state 82
+
+    term      go to state 83
+    boolExpr  go to state 146
+
+
+State 111
+
+   73 boolExpr: TRUE conditions .
+
+    $default  reduce using rule 73 (boolExpr)
+
+
+State 112
+
+   74 boolExpr: FALSE conditions .
+
+    $default  reduce using rule 74 (boolExpr)
+
+
+State 113
+
+   62 term: '-' term .
+
+    $default  reduce using rule 62 (term)
+
+
+State 114
+
+   58 term: '^' ID .
+
+    $default  reduce using rule 58 (term)
+
+
+State 115
+
+   59 term: '^' '(' . ID '+' numExprs ')'
+   60     | '^' '(' . ID '-' numExprs ')'
+   61     | '^' '(' . ID ')'
+
+    ID  shift, and go to state 147
+
+
+State 116
+
+   75 boolExpr: '!' boolExpr .
+
+    $default  reduce using rule 75 (boolExpr)
+
+
+State 117
+
+   33 cop: '<' .
+
+    $default  reduce using rule 33 (cop)
+
+
+State 118
+
+   32 cop: '>' .
+
+    $default  reduce using rule 32 (cop)
+
+
+State 119
+
+   31 cop: NEQ .
+
+    $default  reduce using rule 31 (cop)
+
+
+State 120
+
+   30 cop: LE .
+
+    $default  reduce using rule 30 (cop)
+
+
+State 121
+
+   29 cop: GE .
+
+    $default  reduce using rule 29 (cop)
+
+
+State 122
+
+   28 cop: EQ .
+
+    $default  reduce using rule 28 (cop)
+
+
+State 123
+
+   72 boolExpr: term cop . term conditions
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '^'     shift, and go to state 81
+
+    term  go to state 148
+
+
+State 124
+
+   86 ifelseStmt: IF '(' boolExpr ')' . '{' stmts '}' elseStmt
+
+    '{'  shift, and go to state 149
+
+
+State 125
+
+   89 whileStmt: WHILE '(' boolExpr ')' . '{' stmts '}'
+
+    '{'  shift, and go to state 150
+
+
+State 126
+
+   12 stmts: VAR ID idPrime ':' . declareType ';' stmts
+
+    BOOLEAN  shift, and go to state 151
+    CHAR     shift, and go to state 152
+    INTEGER  shift, and go to state 153
+    STRING   shift, and go to state 154
+    INTPTR   shift, and go to state 155
+    CHARPTR  shift, and go to state 156
+
+    declareType  go to state 157
+
+
+State 127
+
+   11 stmts: PROCEDURE ID '(' parameter . ')' RETURN type '{' stmts returnStmt '}' stmts
+
+    ')'  shift, and go to state 158
+
+
+State 128
+
+   66 factor: '(' numExprs . ')'
+
+    ')'  shift, and go to state 159
+
+
+State 129
+
+   67 factor: '|' numExprs . '|'
+
+    '|'  shift, and go to state 160
+
+
+State 130
+
+   27 sbarket: '[' numExprs ']' .
+
+    $default  reduce using rule 27 (sbarket)
+
+
+State 131
+
+   34 aop: '+' .
+
+    $default  reduce using rule 34 (aop)
+
+
+State 132
+
+   35 aop: '-' .
+
+    $default  reduce using rule 35 (aop)
+
+
+State 133
+
+   36 aop: '*' .
+
+    $default  reduce using rule 36 (aop)
+
+
+State 134
+
+   37 aop: '/' .
+
+    $default  reduce using rule 37 (aop)
+
+
+State 135
+
+   63 termPrime: aop . factor termPrime
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '('     shift, and go to state 88
+    '^'     shift, and go to state 81
+    '|'     shift, and go to state 89
+
+    term    go to state 91
+    factor  go to state 161
+
+
+State 136
+
+   55 numExprs: factor termPrime .
+
+    $default  reduce using rule 55 (numExprs)
+
+
+State 137
+
+   15 exprs: ID sbarket .
+
+    $default  reduce using rule 15 (exprs)
+
+
+State 138
+
+   16 exprs: '&' ID .
+   17      | '&' ID . sbarket
+
+    '['  shift, and go to state 64
+
+    $default  reduce using rule 16 (exprs)
+
+    sbarket  go to state 162
+
+
+State 139
+
+   79 returnStmt: RETURN exprs ';' .
+
+    $default  reduce using rule 79 (returnStmt)
+
+
+State 140
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE . procedureStarts
+
+    ID  shift, and go to state 3
+
+    $default  reduce using rule 3 (procedureStarts)
+
+    procedureStarts  go to state 163
+
+
+State 141
+
+    8 stmts: lhs '=' ID '(' . arguments ')' ';' stmts
+
+    ID       shift, and go to state 94
+    NULLX    shift, and go to state 95
+    NUMBER   shift, and go to state 77
+    STRINGV  shift, and go to state 96
+    CHARV    shift, and go to state 97
+    TRUE     shift, and go to state 78
+    FALSE    shift, and go to state 79
+    '-'      shift, and go to state 80
+    '('      shift, and go to state 88
+    '&'      shift, and go to state 98
+    '^'      shift, and go to state 81
+    '|'      shift, and go to state 89
+    '!'      shift, and go to state 82
+
+    $default  reduce using rule 69 (arguments)
+
+    exprs      go to state 164
+    numExprs   go to state 100
+    term       go to state 101
+    factor     go to state 92
+    arguments  go to state 165
+    boolExpr   go to state 102
+
+
+State 142
+
+    7 stmts: lhs '=' exprs ';' . stmts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 166
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 143
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts . returnStmt '}' procedures
+
+    RETURN  shift, and go to state 68
+
+    returnStmt  go to state 167
+
+
+State 144
+
+   82 parameterPrime: ';' ID idPrime ':' type parameterPrime .
+
+    $default  reduce using rule 82 (parameterPrime)
+
+
+State 145
+
+   76 conditions: AND boolExpr .
+
+    $default  reduce using rule 76 (conditions)
+
+
+State 146
+
+   77 conditions: OR boolExpr .
+
+    $default  reduce using rule 77 (conditions)
+
+
+State 147
+
+   59 term: '^' '(' ID . '+' numExprs ')'
+   60     | '^' '(' ID . '-' numExprs ')'
+   61     | '^' '(' ID . ')'
+
+    '+'  shift, and go to state 168
+    '-'  shift, and go to state 169
+    ')'  shift, and go to state 170
+
+
+State 148
+
+   72 boolExpr: term cop term . conditions
+
+    AND  shift, and go to state 109
+    OR   shift, and go to state 110
+
+    $default  reduce using rule 78 (conditions)
+
+    conditions  go to state 171
+
+
+State 149
+
+   86 ifelseStmt: IF '(' boolExpr ')' '{' . stmts '}' elseStmt
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 172
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 150
+
+   89 whileStmt: WHILE '(' boolExpr ')' '{' . stmts '}'
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 173
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 151
+
+   49 declareType: BOOLEAN .
+
+    $default  reduce using rule 49 (declareType)
+
+
+State 152
+
+   51 declareType: CHAR .
+
+    $default  reduce using rule 51 (declareType)
+
+
+State 153
+
+   50 declareType: INTEGER .
+
+    $default  reduce using rule 50 (declareType)
+
+
+State 154
+
+   54 declareType: STRING . '[' NUMBER ']'
+
+    '['  shift, and go to state 174
+
+
+State 155
+
+   53 declareType: INTPTR .
+
+    $default  reduce using rule 53 (declareType)
+
+
+State 156
+
+   52 declareType: CHARPTR .
+
+    $default  reduce using rule 52 (declareType)
+
+
+State 157
+
+   12 stmts: VAR ID idPrime ':' declareType . ';' stmts
+
+    ';'  shift, and go to state 175
+
+
+State 158
+
+   11 stmts: PROCEDURE ID '(' parameter ')' . RETURN type '{' stmts returnStmt '}' stmts
+
+    RETURN  shift, and go to state 176
+
+
+State 159
+
+   66 factor: '(' numExprs ')' .
+
+    $default  reduce using rule 66 (factor)
+
+
+State 160
+
+   67 factor: '|' numExprs '|' .
+
+    $default  reduce using rule 67 (factor)
+
+
+State 161
+
+   63 termPrime: aop factor . termPrime
+
+    '+'  shift, and go to state 131
+    '-'  shift, and go to state 132
+    '*'  shift, and go to state 133
+    '/'  shift, and go to state 134
+
+    $default  reduce using rule 64 (termPrime)
+
+    aop        go to state 135
+    termPrime  go to state 177
+
+
+State 162
+
+   17 exprs: '&' ID sbarket .
+
+    $default  reduce using rule 17 (exprs)
+
+
+State 163
+
+    2 procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts .
+
+    $default  reduce using rule 2 (procedureStarts)
+
+
+State 164
+
+   68 arguments: exprs . argumentsPrime
+
+    ','  shift, and go to state 178
+
+    $default  reduce using rule 71 (argumentsPrime)
+
+    argumentsPrime  go to state 179
+
+
+State 165
+
+    8 stmts: lhs '=' ID '(' arguments . ')' ';' stmts
+
+    ')'  shift, and go to state 180
+
+
+State 166
+
+    7 stmts: lhs '=' exprs ';' stmts .
+
+    $default  reduce using rule 7 (stmts)
+
+
+State 167
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts returnStmt . '}' procedures
+
+    '}'  shift, and go to state 181
+
+
+State 168
+
+   59 term: '^' '(' ID '+' . numExprs ')'
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '('     shift, and go to state 88
+    '^'     shift, and go to state 81
+    '|'     shift, and go to state 89
+
+    numExprs  go to state 182
+    term      go to state 91
+    factor    go to state 92
+
+
+State 169
+
+   60 term: '^' '(' ID '-' . numExprs ')'
+
+    ID      shift, and go to state 76
+    NUMBER  shift, and go to state 77
+    '-'     shift, and go to state 80
+    '('     shift, and go to state 88
+    '^'     shift, and go to state 81
+    '|'     shift, and go to state 89
+
+    numExprs  go to state 183
+    term      go to state 91
+    factor    go to state 92
+
+
+State 170
+
+   61 term: '^' '(' ID ')' .
+
+    $default  reduce using rule 61 (term)
+
+
+State 171
+
+   72 boolExpr: term cop term conditions .
+
+    $default  reduce using rule 72 (boolExpr)
+
+
+State 172
+
+   86 ifelseStmt: IF '(' boolExpr ')' '{' stmts . '}' elseStmt
+
+    '}'  shift, and go to state 184
+
+
+State 173
+
+   89 whileStmt: WHILE '(' boolExpr ')' '{' stmts . '}'
+
+    '}'  shift, and go to state 185
+
+
+State 174
+
+   54 declareType: STRING '[' . NUMBER ']'
+
+    NUMBER  shift, and go to state 186
+
+
+State 175
+
+   12 stmts: VAR ID idPrime ':' declareType ';' . stmts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 187
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 176
+
+   11 stmts: PROCEDURE ID '(' parameter ')' RETURN . type '{' stmts returnStmt '}' stmts
+
+    BOOLEAN  shift, and go to state 25
+    CHAR     shift, and go to state 26
+    INTEGER  shift, and go to state 27
+    STRING   shift, and go to state 28
+    INTPTR   shift, and go to state 29
+    CHARPTR  shift, and go to state 30
+
+    type  go to state 188
+
+
+State 177
+
+   63 termPrime: aop factor termPrime .
+
+    $default  reduce using rule 63 (termPrime)
+
+
+State 178
+
+   70 argumentsPrime: ',' . exprs argumentsPrime
+
+    ID       shift, and go to state 94
+    NULLX    shift, and go to state 95
+    NUMBER   shift, and go to state 77
+    STRINGV  shift, and go to state 96
+    CHARV    shift, and go to state 97
+    TRUE     shift, and go to state 78
+    FALSE    shift, and go to state 79
+    '-'      shift, and go to state 80
+    '('      shift, and go to state 88
+    '&'      shift, and go to state 98
+    '^'      shift, and go to state 81
+    '|'      shift, and go to state 89
+    '!'      shift, and go to state 82
+
+    exprs     go to state 189
+    numExprs  go to state 100
+    term      go to state 101
+    factor    go to state 92
+    boolExpr  go to state 102
+
+
+State 179
+
+   68 arguments: exprs argumentsPrime .
+
+    $default  reduce using rule 68 (arguments)
+
+
+State 180
+
+    8 stmts: lhs '=' ID '(' arguments ')' . ';' stmts
+
+    ';'  shift, and go to state 190
+
+
+State 181
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' . procedures
+
+    PROCEDURE  shift, and go to state 12
+
+    $default  reduce using rule 5 (procedures)
+
+    procedures  go to state 191
+
+
+State 182
+
+   59 term: '^' '(' ID '+' numExprs . ')'
+
+    ')'  shift, and go to state 192
+
+
+State 183
+
+   60 term: '^' '(' ID '-' numExprs . ')'
+
+    ')'  shift, and go to state 193
+
+
+State 184
+
+   86 ifelseStmt: IF '(' boolExpr ')' '{' stmts '}' . elseStmt
+
+    ELSE  shift, and go to state 194
+
+    $default  reduce using rule 88 (elseStmt)
+
+    elseStmt  go to state 195
+
+
+State 185
+
+   89 whileStmt: WHILE '(' boolExpr ')' '{' stmts '}' .
+
+    $default  reduce using rule 89 (whileStmt)
+
+
+State 186
+
+   54 declareType: STRING '[' NUMBER . ']'
+
+    ']'  shift, and go to state 196
+
+
+State 187
+
+   12 stmts: VAR ID idPrime ':' declareType ';' stmts .
+
+    $default  reduce using rule 12 (stmts)
+
+
+State 188
+
+   11 stmts: PROCEDURE ID '(' parameter ')' RETURN type . '{' stmts returnStmt '}' stmts
+
+    '{'  shift, and go to state 197
+
+
+State 189
+
+   70 argumentsPrime: ',' exprs . argumentsPrime
+
+    ','  shift, and go to state 178
+
+    $default  reduce using rule 71 (argumentsPrime)
+
+    argumentsPrime  go to state 198
+
+
+State 190
+
+    8 stmts: lhs '=' ID '(' arguments ')' ';' . stmts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 199
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 191
+
+    4 procedures: PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures .
+
+    $default  reduce using rule 4 (procedures)
+
+
+State 192
+
+   59 term: '^' '(' ID '+' numExprs ')' .
+
+    $default  reduce using rule 59 (term)
+
+
+State 193
+
+   60 term: '^' '(' ID '-' numExprs ')' .
+
+    $default  reduce using rule 60 (term)
+
+
+State 194
+
+   87 elseStmt: ELSE . '{' stmts '}'
+
+    '{'  shift, and go to state 200
+
+
+State 195
+
+   86 ifelseStmt: IF '(' boolExpr ')' '{' stmts '}' elseStmt .
+
+    $default  reduce using rule 86 (ifelseStmt)
+
+
+State 196
+
+   54 declareType: STRING '[' NUMBER ']' .
+
+    $default  reduce using rule 54 (declareType)
+
+
+State 197
+
+   11 stmts: PROCEDURE ID '(' parameter ')' RETURN type '{' . stmts returnStmt '}' stmts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 201
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 198
+
+   70 argumentsPrime: ',' exprs argumentsPrime .
+
+    $default  reduce using rule 70 (argumentsPrime)
+
+
+State 199
+
+    8 stmts: lhs '=' ID '(' arguments ')' ';' stmts .
+
+    $default  reduce using rule 8 (stmts)
+
+
+State 200
+
+   87 elseStmt: ELSE '{' . stmts '}'
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 202
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 201
+
+   11 stmts: PROCEDURE ID '(' parameter ')' RETURN type '{' stmts . returnStmt '}' stmts
+
+    RETURN  shift, and go to state 68
+
+    returnStmt  go to state 203
+
+
+State 202
+
+   87 elseStmt: ELSE '{' stmts . '}'
+
+    '}'  shift, and go to state 204
+
+
+State 203
+
+   11 stmts: PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt . '}' stmts
+
+    '}'  shift, and go to state 205
+
+
+State 204
+
+   87 elseStmt: ELSE '{' stmts '}' .
+
+    $default  reduce using rule 87 (elseStmt)
+
+
+State 205
+
+   11 stmts: PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' . stmts
+
+    IF         shift, and go to state 46
+    WHILE      shift, and go to state 47
+    VAR        shift, and go to state 48
+    PROCEDURE  shift, and go to state 49
+    ID         shift, and go to state 50
+    '&'        shift, and go to state 51
+    '^'        shift, and go to state 52
+
+    $default  reduce using rule 13 (stmts)
+
+    stmts       go to state 206
+    lhs         go to state 54
+    ifelseStmt  go to state 55
+    whileStmt   go to state 56
+
+
+State 206
+
+   11 stmts: PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts .
+
+    $default  reduce using rule 11 (stmts)

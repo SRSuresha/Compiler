@@ -1,0 +1,192 @@
+%{
+    #include <cstdio>
+    #include <cstdlib>
+
+    #include "ast.hpp"
+    #include "primitive.hpp"
+    #include "symtab.hpp"
+
+    #define YYDEBUG 1
+
+    extern Program_ptr ast;
+    int yylex(void);
+    void yyerror(const char *);
+%}
+
+/* Enables verbose error messages */
+%error-verbose
+
+%token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
+ %token NUMBER  AND OR STRINGV CHARV TRUE FALSE 
+ %left '<' '>' '=' NEQ LE GE EQ 
+ %left '+' '-'
+ %left '*' '/'
+ %right Dummy 
+
+%%
+
+s       : PROCEDURE procedureStarts mainProcedures procedures  
+          { std::list<Proc_ptr>* temp = $4.u_proc_list;
+            temp->push_front($2.u_proc);
+            temp->push_front($1.u_proc);
+            $$.u_program = new ProgramImpl(temp); }
+        ;
+
+procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+         {
+            $$.u_proc = new ProcImpl($1.u_symname,$8.u_decl_list,$6.u_type,$8.u_procedure_block);
+         }
+        | 
+        ;
+
+procedures : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures
+            {$$.u_proc_list = $12.u_proc_list; 
+             $$.u_proc_list->push_front(new ProcImpl($2.u_symname,$9.u_decl_list,$7.u_type,$9.u_procedure_block));}
+        |
+        ;
+
+mainProcedures: MAIN '('  ')'RETURN returnType '{' stmts returnStmt '}'
+        {
+            $$.u_proc = new ProcImpl(new SymName("Main"),$7.u_decl_list,$5.u_type,$7.u_procedure_block);
+        }
+        ;
+
+stmts   : lhs '=' exprs ';' stmts   
+        {
+            $$.u_decl_list = $5.u_decl_list;
+        }   
+        | lhs '=' ID '(' arguments ')' ';' stmts
+        | ifelseStmt stmts
+        | whileStmt stmts
+        | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts
+        | VAR ID idPrime ':' declareType ';' stmts
+        |
+        ;
+
+
+exprs   : NULLX
+        | ID sbarket                    
+        | '&' ID                        
+        | '&' ID sbarket                
+        | STRINGV                       
+        | CHARV                         
+        | numExprs                      
+        | boolExpr                      
+        ;
+
+lhs     : ID sbarket
+        | ID
+        | '&' ID sbarket
+        | '&' ID
+        | '^' ID
+        ;
+
+sbarket : '[' numExprs ']'
+        ;
+
+
+cop     : EQ | GE | LE | NEQ | '>' | '<'
+        ;
+
+aop     : '+' | '-' | '*' |'/'
+
+type    : BOOLEAN           {$$.u_type = new TBoolean();}
+        | INTEGER
+        | CHAR
+        | CHARPTR
+        | STRING
+        | INTPTR
+        ;
+
+returnType  : BOOLEAN
+        | INTEGER
+        | CHAR
+        | CHARPTR
+        | INTPTR
+        ;
+
+declareType : BOOLEAN
+        | INTEGER
+        | CHAR
+        | CHARPTR
+        | INTPTR
+        | STRING '[' NUMBER ']'
+        ;
+
+numExprs: factor termPrime
+        ;
+
+term    : ID
+        | NUMBER
+        | '^' ID
+        | '^' '('ID '+' numExprs ')'    {printf("'^' '('ID '+' NumExprs ')'\n");}
+        | '^' '('ID '-' numExprs ')'    {printf("'^' '('ID '-' NumExprs ')' \n");}
+        | '^' '(' ID ')'                {printf("'^' '(' ID ')'\n");}
+        | '-' term                      %prec Dummy
+        ;
+
+termPrime:  aop factor termPrime            {printf("AOP Factor TermPrime\n");}
+        |
+        ;
+
+factor  : term                              {printf("Term\n");}
+        | '(' numExprs ')'
+        | '|' numExprs '|'
+
+arguments : exprs argumentsPrime
+        |
+        ;
+
+argumentsPrime: ',' exprs argumentsPrime
+        |
+        ;
+
+boolExpr: term cop term conditions
+        | TRUE conditions
+        | FALSE conditions
+        | '!' boolExpr
+        ; 
+
+conditions: AND boolExpr
+        | OR boolExpr
+        |
+        ;
+
+returnStmt : RETURN exprs ';' {printf("return exprs\n");}
+        ;
+
+parameter: ID idPrime ':' type parameterPrime
+        |
+        ;
+
+parameterPrime : ';' ID idPrime ':' type parameterPrime
+        |
+        ;
+
+idPrime : ',' ID idPrime 
+        |   
+        ;
+
+ifelseStmt  : IF '(' boolExpr ')'  '{' stmts '}' elseStmt
+        ;
+
+elseStmt: ELSE '{' stmts '}'
+        |
+        ;
+
+whileStmt: WHILE '(' boolExpr ')' '{' stmts '}'
+        ;
+
+%%
+
+/** You shall not pass!
+ *  You should not  have to do or edit anything past this.
+ */
+
+extern int yylineno;
+
+void yyerror(const char *s)
+{
+    fprintf(stderr, "%s at line %d\n", s, yylineno);
+    return;
+}
