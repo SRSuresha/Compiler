@@ -49,7 +49,7 @@
 "<="				{return LE;}
 "!="				{return NEQ;}
 "||"				{return OR;}
-[\"].*[\"]			{yylval = stl.dup(yytext); return STRINGV;}
+[\"].*[\"]			{/*yylval = stl.dup(yytext);*/ return STRINGV;}
 [\'].[\']			{return CHARV;}
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 [0-7][0-7]* 				{return NUMBER;}
