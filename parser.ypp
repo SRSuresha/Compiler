@@ -29,44 +29,45 @@
  *  the grammar for the language for this project here.
  */
 		
-s       : PROCEDURE procedureStarts mainProcedures procedures 
+s       : procedures 
         ;
 
-procedureStarts: ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' PROCEDURE procedureStarts
+
+procedures: procedures procedure
+          | 
+
+procedure : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts  '}' 
+        ;
+
+        ;
+
+stmts   : stmts stmt
         | 
-        ;
 
-procedures : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts returnStmt '}' procedures
-        |
-        ;
 
-mainProcedures: MAIN '('  ')'RETURN returnType '{' stmts returnStmt '}'
-        ;
-
-stmts   : lhs '=' exprs ';' stmts       {printf("LHS '=' Exprs ';' Stmts\n");}
-        | lhs '=' ID '(' arguments ')' ';' stmts
-        | ifelseStmt stmts
-        | whileStmt stmts
-        | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts
-        | VAR ID idPrime ':' declareType ';' stmts
-        |
+stmt    : lhs '=' exprs ';'        
+        | lhs '=' ID '(' arguments ')' ';' 
+        | IF '(' boolExpr ')'  '{' stmts '}' ELSE '{' stmts '}' 
+        | IF '(' boolExpr ')'  '{' stmts '}'
+        | WHILE '(' boolExpr ')' '{' stmts '}' 
+        | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts  '}' 
+        | VAR ID idPrime ':' declareType ';'
+        | RETURN exprs
         ;
 
 
 exprs   : NULLX
-        | ID sbarket                    {printf("ID Sbarket\n");}
-        | '&' ID                        {printf("& ID\n");}
-        | '&' ID sbarket                {printf("'&' ID Sbarket\n");}
-        | STRINGV                       {printf("STRINGV \n");}
-        | CHARV                         {printf("CHARV \n");}
-        | numExprs                      {printf("NumExprs \n");}
-        | boolExpr                      {printf("BoolExpr\n");}
+        | ID sbarket                    
+        | '&' ID                        
+        | '&' ID sbarket                
+        | STRINGV                       
+        | CHARV                         
+        | numExprs                      
+        | boolExpr                      
         ;
 
 lhs     : ID sbarket
         | ID
-        | '&' ID sbarket
-        | '&' ID
         | '^' ID
         ;
 
@@ -108,9 +109,9 @@ numExprs: factor termPrime
 term    : ID
         | NUMBER
         | '^' ID
-        | '^' '('ID '+' numExprs ')'    {printf("'^' '('ID '+' NumExprs ')'\n");}
-        | '^' '('ID '-' numExprs ')'    {printf("'^' '('ID '-' NumExprs ')' \n");}
-        | '^' '(' ID ')'                {printf("'^' '(' ID ')'\n");}
+        | '^' '('ID '+' numExprs ')'    
+        | '^' '('ID '-' numExprs ')'    
+        | '^' '(' ID ')'                
         | '-' term                      %prec Dummy
         ;
 
@@ -121,6 +122,9 @@ termPrime:  aop factor termPrime            {printf("AOP Factor TermPrime\n");}
 factor  : term                              {printf("Term\n");}
         | '(' numExprs ')'
         | '|' numExprs '|'
+
+
+        
 
 arguments : exprs argumentsPrime
         |
@@ -141,8 +145,6 @@ conditions: AND boolExpr
         |
         ;
 
-returnStmt : RETURN exprs ';' {printf("return exprs\n");}
-        ;
 
 parameter: ID idPrime ':' type parameterPrime
         |
@@ -156,15 +158,6 @@ idPrime : ',' ID idPrime
         |   
         ;
 
-ifelseStmt  : IF '(' boolExpr ')'  '{' stmts '}' elseStmt
-        ;
-
-elseStmt: ELSE '{' stmts '}'
-        |
-        ;
-
-whileStmt: WHILE '(' boolExpr ')' '{' stmts '}'
-        ;
 
 
 %%
