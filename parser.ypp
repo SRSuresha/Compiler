@@ -17,7 +17,8 @@
  */
 
  %token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
- %token NUMBER  AND OR STRINGV CHARV TRUE FALSE 
+ %token NUMBER   STRINGV CHARV TRUE FALSE 
+ %left AND OR
  %left '<' '>' '=' NEQ LE GE EQ 
  %left '+' '-'
  %left '*' '/'
@@ -108,23 +109,25 @@ numExprs: factor termPrime
 
 term    : ID
         | NUMBER
-        | '^' ID
-        | '^' '('ID '+' numExprs ')'    
-        | '^' '('ID '-' numExprs ')'    
-        | '^' '(' ID ')'                
+        | '^' dexprs               
         | '-' term                      %prec Dummy
         ;
 
-termPrime:  aop factor termPrime            {printf("AOP Factor TermPrime\n");}
+dexprs  : ID
+        | '('ID '+' numExprs ')' 
+        | '('ID '-' numExprs ')' 
+        | '(' ID ')' 
+
+termPrime:  aop factor termPrime            
         |
         ;
 
-factor  : term                              {printf("Term\n");}
+factor  : term                              
         | '(' numExprs ')'
         | '|' numExprs '|'
 
 
-        
+
 
 arguments : exprs argumentsPrime
         |

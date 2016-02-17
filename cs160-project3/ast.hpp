@@ -36,10 +36,8 @@ class TCharPtr;
 class TIntPtr;
 class TString;
 class AddressOf;
-class PExpr;
-class Expression;
-class And;
 class Expr;
+class And;
 class Div;
 class Compare;
 class Gt;
@@ -76,7 +74,7 @@ typedef Proc* Proc_ptr;
 typedef Decl* Decl_ptr;
 typedef Stat* Stat_ptr;
 typedef SymName* SymName_ptr;
-typedef PExpr* PExpr_ptr;
+typedef Expr* Expr_ptr;
 
 
 /********** Union Type (from parse) **********/
@@ -96,10 +94,9 @@ Nested_block* u_nested_block;
 std::list<SymName_ptr>* u_symname_list;
 Decl* u_decl;
 Stat* u_stat;
-std::list<PExpr_ptr>* u_pexpr_list;
+std::list<Expr_ptr>* u_expr_list;
 Return_stat* u_return_stat;
 Type* u_type;
-PExpr* u_pexpr;
 Expr* u_expr;
 Lhs* u_lhs;
 SymName* u_symname;
@@ -136,7 +133,6 @@ virtual void visitTCharPtr(TCharPtr *p) = 0;
 virtual void visitTIntPtr(TIntPtr *p) = 0;
 virtual void visitTString(TString *p) = 0;
 virtual void visitAddressOf(AddressOf *p) = 0;
-virtual void visitExpression(Expression *p) = 0;
 virtual void visitAnd(And *p) = 0;
 virtual void visitDiv(Div *p) = 0;
 virtual void visitCompare(Compare *p) = 0;
@@ -231,13 +227,6 @@ public:
    Attribute m_attribute;
    Attribute* m_parent_attribute;
    virtual Type *clone() const = 0;
-};
-
-class PExpr : public Visitable {
-public:
-   Attribute m_attribute;
-   Attribute* m_parent_attribute;
-   virtual PExpr *clone() const = 0;
 };
 
 class Expr : public Visitable {
@@ -342,16 +331,16 @@ class DeclImpl : public Decl
   void swap(DeclImpl &);
 };
 
-// Stat:Assignment ==> Lhs PExpr
+// Stat:Assignment ==> Lhs Expr
 class Assignment : public Stat
 {
   public:
   Lhs *m_lhs;
-  PExpr *m_pexpr;
+  Expr *m_expr;
 
   Assignment(const Assignment &);
   Assignment &operator=(const Assignment &);
-  Assignment(Lhs *p1, PExpr *p2);
+  Assignment(Lhs *p1, Expr *p2);
   ~Assignment();
   virtual void visit_children( Visitor* v );
   virtual void accept(Visitor *v);
@@ -376,17 +365,17 @@ class StringAssignment : public Stat
   void swap(StringAssignment &);
 };
 
-// Stat:Call ==> Lhs SymName *PExpr
+// Stat:Call ==> Lhs SymName *Expr
 class Call : public Stat
 {
   public:
   Lhs *m_lhs;
   SymName *m_symname;
-  std::list<PExpr_ptr> *m_pexpr_list;
+  std::list<Expr_ptr> *m_expr_list;
 
   Call(const Call &);
   Call &operator=(const Call &);
-  Call(Lhs *p1, SymName *p2, std::list<PExpr_ptr> *p3);
+  Call(Lhs *p1, SymName *p2, std::list<Expr_ptr> *p3);
   ~Call();
   virtual void visit_children( Visitor* v );
   virtual void accept(Visitor *v);
@@ -394,16 +383,16 @@ class Call : public Stat
   void swap(Call &);
 };
 
-// Stat:IfNoElse ==> PExpr Nested_block
+// Stat:IfNoElse ==> Expr Nested_block
 class IfNoElse : public Stat
 {
   public:
-  PExpr *m_pexpr;
+  Expr *m_expr;
   Nested_block *m_nested_block;
 
   IfNoElse(const IfNoElse &);
   IfNoElse &operator=(const IfNoElse &);
-  IfNoElse(PExpr *p1, Nested_block *p2);
+  IfNoElse(Expr *p1, Nested_block *p2);
   ~IfNoElse();
   virtual void visit_children( Visitor* v );
   virtual void accept(Visitor *v);
@@ -411,17 +400,17 @@ class IfNoElse : public Stat
   void swap(IfNoElse &);
 };
 
-// Stat:IfWithElse ==> PExpr Nested_block Nested_block
+// Stat:IfWithElse ==> Expr Nested_block Nested_block
 class IfWithElse : public Stat
 {
   public:
-  PExpr *m_pexpr;
+  Expr *m_expr;
   Nested_block *m_nested_block_1;
   Nested_block *m_nested_block_2;
 
   IfWithElse(const IfWithElse &);
   IfWithElse &operator=(const IfWithElse &);
-  IfWithElse(PExpr *p1, Nested_block *p2, Nested_block *p3);
+  IfWithElse(Expr *p1, Nested_block *p2, Nested_block *p3);
   ~IfWithElse();
   virtual void visit_children( Visitor* v );
   virtual void accept(Visitor *v);
@@ -429,16 +418,16 @@ class IfWithElse : public Stat
   void swap(IfWithElse &);
 };
 
-// Stat:WhileLoop ==>  PExpr Nested_block
+// Stat:WhileLoop ==>  Expr Nested_block
 class WhileLoop : public Stat
 {
   public:
-  PExpr *m_pexpr;
+  Expr *m_expr;
   Nested_block *m_nested_block;
 
   WhileLoop(const WhileLoop &);
   WhileLoop &operator=(const WhileLoop &);
-  WhileLoop(PExpr *p1, Nested_block *p2);
+  WhileLoop(Expr *p1, Nested_block *p2);
   ~WhileLoop();
   virtual void visit_children( Visitor* v );
   virtual void accept(Visitor *v);
@@ -446,15 +435,15 @@ class WhileLoop : public Stat
   void swap(WhileLoop &);
 };
 
-// Return_stat:Return ==> PExpr
+// Return_stat:Return ==> Expr
 class Return : public Return_stat
 {
   public:
-  PExpr *m_pexpr;
+  Expr *m_expr;
 
   Return(const Return &);
   Return &operator=(const Return &);
-  Return(PExpr *p1);
+  Return(Expr *p1);
   ~Return();
   virtual void visit_children( Visitor* v );
   virtual void accept(Visitor *v);
@@ -553,8 +542,8 @@ class TString : public Type
   void swap(TString &);
 };
 
-// PExpr:AddressOf ==> Lhs
-class AddressOf : public PExpr
+// Expr:AddressOf ==> Lhs
+class AddressOf : public Expr
 {
   public:
   Lhs *m_lhs;
@@ -567,22 +556,6 @@ class AddressOf : public PExpr
   virtual void accept(Visitor *v);
   virtual  AddressOf  *clone() const;
   void swap(AddressOf &);
-};
-
-// PExpr:Expression ==> Expr
-class Expression : public PExpr
-{
-  public:
-  Expr *m_expr;
-
-  Expression(const Expression &);
-  Expression &operator=(const Expression &);
-  Expression(Expr *p1);
-  ~Expression();
-  virtual void visit_children( Visitor* v );
-  virtual void accept(Visitor *v);
-  virtual  Expression  *clone() const;
-  void swap(Expression &);
 };
 
 // Expr:And ==> Expr Expr

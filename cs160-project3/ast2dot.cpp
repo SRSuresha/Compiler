@@ -89,6 +89,7 @@ class Ast2dot : public Visitor
     void visitTCharPtr(TCharPtr *p) { draw("TCharPtr", p); };
     void visitTString(TString *p) { draw("TString", p); }
 
+    void visitAddressOf(AddressOf *p) { draw("AddressOf", p); };
     void visitAnd(And *p) { draw("And", p); }
     void visitDiv(Div *p) { draw("Div", p); }
     void visitCompare(Compare *p) { draw("Compare", p); }
@@ -109,10 +110,6 @@ class Ast2dot : public Visitor
     void visitIntLit(IntLit *p) { draw("IntLit", p); }
     void visitCharLit(CharLit *p) { draw("CharLit", p); }
     void visitBoolLit(BoolLit *p) { draw("BoolLit", p); }
-
-    /* PExpr */
-    void visitAddressOf(AddressOf *p) { draw("AddressOf", p); };
-    void visitExpression(Expression *p) { draw("Expression", p); };
 
     /* LHS */
     void visitDeref(Deref *p) { draw("Deref", p); };

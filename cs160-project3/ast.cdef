@@ -10,15 +10,15 @@ Nested_block ==> *Stat
 
 Decl ==> *SymName Type
 
-Stat:Assignment ==> Lhs PExpr
+Stat:Assignment ==> Lhs Expr
 Stat:StringAssignment ==> Lhs StringPrimitive
 
-Stat:Call ==> Lhs SymName *PExpr
-Stat:IfNoElse ==> PExpr Nested_block
-Stat:IfWithElse ==> PExpr Nested_block Nested_block
-Stat:WhileLoop ==>  PExpr Nested_block
+Stat:Call ==> Lhs SymName *Expr
+Stat:IfNoElse ==> Expr Nested_block
+Stat:IfWithElse ==> Expr Nested_block Nested_block
+Stat:WhileLoop ==>  Expr Nested_block
 
-Return_stat:Return ==> PExpr
+Return_stat:Return ==> Expr
 
 Type:TInteger ==>
 Type:TCharacter ==>
@@ -27,9 +27,7 @@ Type:TCharPtr ==>
 Type:TIntPtr ==>
 Type:TString ==> Primitive
 
-PExpr:AddressOf ==> Lhs
-PExpr:Expression ==> Expr
-
+Expr:AddressOf ==> Lhs
 Expr:And ==> Expr Expr
 Expr:Div ==> Expr Expr
 Expr:Compare ==> Expr Expr
