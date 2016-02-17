@@ -28,7 +28,6 @@
 
 %%
 
-"Main"				{yylval.u_base_charptr = "MAIN";  return MAIN;}
 "boolean"			{return BOOLEAN;}
 "char"				{return CHAR;}
 "integer"			{return INTEGER;}
@@ -50,7 +49,7 @@
 "<="				{return LE;}
 "!="				{return NEQ;}
 "||"				{return OR;}
-[\"].*[\"]			{return STRINGV;}
+[\"].*[\"]			{yylval = stl.dup(yytext); return STRINGV;}
 [\'].[\']			{return CHARV;}
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 [0-7][0-7]* 				{return NUMBER;}

@@ -23,7 +23,101 @@
  %left '*' '/'
  %right Dummy 
 
+/*
+
+
+class ProgramImpl;
+class Program;
+class ProcImpl;
+class Proc;
+class Procedure_blockImpl;
+class Procedure_block;
+class Nested_blockImpl;
+class Nested_block;
+class DeclImpl;
+class Decl;
+class Assignment;
+class Stat;
+class StringAssignment;
+class Call;
+class IfNoElse;
+class IfWithElse;
+class WhileLoop;
+class Return;
+class Return_stat;
+class TInteger;
+class Type;
+class TCharacter;
+class TBoolean;
+class TCharPtr;
+class TIntPtr;
+class TString;
+class AddressOf;
+class PExpr;
+class Expression;
+class And;
+class Expr;
+class Div;
+class Compare;
+class Gt;
+class Gteq;
+class Lt;
+class Lteq;
+class Minus;
+class Noteq;
+class Or;
+class Plus;
+class Times;
+class Not;
+class Uminus;
+class Ident;
+class ArrayAccess;
+class IntLit;
+class CharLit;
+class BoolLit;
+class Deref;
+class Variable;
+class Lhs;
+class DerefVariable;
+class ArrayElement;
+class SymName;
+class Primitive;
+class StringPrimitive;
+typedef union
+{
+std::list<Proc_ptr>* u_proc_list;
+Program* u_program;
+std::list<Decl_ptr>* u_decl_list;
+Proc* u_proc;
+std::list<Stat_ptr>* u_stat_list;
+Procedure_block* u_procedure_block;
+Nested_block* u_nested_block;
+std::list<SymName_ptr>* u_symname_list;
+Decl* u_decl;
+Stat* u_stat;
+std::list<PExpr_ptr>* u_pexpr_list;
+Return_stat* u_return_stat;
+Type* u_type;
+PExpr* u_pexpr;
+Expr* u_expr;
+Lhs* u_lhs;
+SymName* u_symname;
+Primitive* u_primitive;
+StringPrimitive* u_stringprimitive;
+
+// a couple of hardcoded types
+char* u_base_charptr;
+int u_base_int;
+} classunion_stype;
+#define YYSTYPE classunion_stype
+*/
+
+
+
 %%
+
+
+
 
 s       : PROCEDURE procedureStarts mainProcedures procedures  
           { std::list<Proc_ptr>* temp = $4.u_proc_list;
@@ -51,12 +145,15 @@ mainProcedures: MAIN '('  ')'RETURN returnType '{' stmts returnStmt '}'
         }
         ;
 
-stmts   : lhs '=' exprs ';' stmts   
+stmts   : stmt stmts
+        | stmt
+
+stmt   : lhs '=' exprs ';'    
         {
-            $$.u_decl_list = $5.u_decl_list;
+            $$.u_stat = new Assignment($1.u_lhs,$3.u_expr);
         }   
-        | lhs '=' ID '(' arguments ')' ';' stmts
-        | ifelseStmt stmts
+        | lhs '=' ID '(' arguments ')' ';' 
+        | ifelseStmt 
         | whileStmt stmts
         | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts returnStmt '}' stmts
         | VAR ID idPrime ':' declareType ';' stmts
@@ -74,12 +171,12 @@ exprs   : NULLX
         | boolExpr                      
         ;
 
+#here 
 lhs     : ID sbarket
         | ID
-        | '&' ID sbarket
-        | '&' ID
         | '^' ID
         ;
+
 
 sbarket : '[' numExprs ']'
         ;
@@ -118,10 +215,7 @@ numExprs: factor termPrime
 
 term    : ID
         | NUMBER
-        | '^' ID
-        | '^' '('ID '+' numExprs ')'    {printf("'^' '('ID '+' NumExprs ')'\n");}
-        | '^' '('ID '-' numExprs ')'    {printf("'^' '('ID '-' NumExprs ')' \n");}
-        | '^' '(' ID ')'                {printf("'^' '(' ID ')'\n");}
+        | '^' expr     {$$.expr = new Deref($2.u_expr);}
         | '-' term                      %prec Dummy
         ;
 
