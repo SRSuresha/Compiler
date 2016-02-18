@@ -30,7 +30,6 @@
 
 %%
 
-"Main"				{return MAIN;}
 "boolean"			{return BOOLEAN;}
 "char"				{return CHAR;}
 "integer"			{return INTEGER;}

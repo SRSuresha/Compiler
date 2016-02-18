@@ -16,7 +16,7 @@
  *  - Put all your precedence/associativity rules here
  */
 
- %token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
+ %token  BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
  %token NUMBER   STRINGV CHARV TRUE FALSE 
  %left AND OR
  %left '<' '>' '=' NEQ LE GE EQ 
@@ -30,14 +30,14 @@
  *  the grammar for the language for this project here.
  */
 		
-s       : procedures 
+s       : procedures                
         ;
 
 
 procedures: procedures procedure
           | 
 
-procedure : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts  '}' 
+procedure : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts '}' 
         ;
 
         ;
@@ -46,38 +46,49 @@ stmts   : stmts stmt
         | 
 
 
-stmt    : lhs '=' exprs ';'        
+stmt    : lhs '=' exprs ';'      
+        | lhs '=' STRINGV ';'  
         | lhs '=' ID '(' arguments ')' ';' 
-        | IF '(' boolExpr ')'  '{' stmts '}' ELSE '{' stmts '}' 
-        | IF '(' boolExpr ')'  '{' stmts '}'
-        | WHILE '(' boolExpr ')' '{' stmts '}' 
-        | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts  '}' 
-        | VAR ID idPrime ':' declareType ';'
-        | RETURN exprs
+        | IF '(' exprs ')'  '{' stmts '}' ELSE '{' stmts '}' 
+        | IF '(' exprs ')'  '{' stmts '}'
+        | WHILE '(' exprs ')' '{' stmts '}' 
+        | PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts  '}' 
+        | VAR ID idPrime ':' declareType ';'                              
+        | RETURN exprs ';'
         ;
 
 
-exprs   : 
-        | ID sbarket                    
-        | '&' ID                        
-        | '&' ID sbarket                      
-        | numExprs                      
-        | boolExpr 
-        | literal                     
+exprs   : exprs aop term
+        | exprs cop term
+        | exprs AND term
+        | exprs OR  term
+        | term                    
         ;
 
-lhs     : ID sbarket
+
+term    : ID sbarket
         | ID
-        | '^' ID
+        | literal
+        | '(' exprs ')'
+        | '|' exprs '|'
+        | '!' exprs                     %prec Dummy 
+        | '^' exprs                     %prec Dummy 
+        | '-' exprs                     %prec Dummy  
+        | '&' exprs                     %prec Dummy 
         ;
 
-literal : INTEGER
+lhs     : ID sbarket                
+        | ID                        
+        | '^' ID                    
+        ;
+
+literal : NUMBER
         | CHARV
         | TRUE
         | FALSE
         | NULLX
 
-sbarket : '[' numExprs ']'
+sbarket : '[' exprs ']'
         ;
 
 
@@ -86,7 +97,7 @@ cop     : EQ | GE | LE | NEQ | '>' | '<'
 
 aop     : '+' | '-' | '*' |'/'
 
-type    : BOOLEAN
+type    : BOOLEAN               
         | INTEGER
         | CHAR
         | CHARPTR
@@ -94,7 +105,7 @@ type    : BOOLEAN
         | INTPTR
         ;
 
-returnType  : BOOLEAN
+returnType  : BOOLEAN           
         | INTEGER
         | CHAR
         | CHARPTR
@@ -109,29 +120,6 @@ declareType : BOOLEAN
         | STRING '[' NUMBER ']'
         ;
 
-numExprs: factor termPrime
-        ;
-
-term    : ID
-        | NUMBER
-        | '^' dexprs               
-        | '-' term                      %prec Dummy
-        ;
-
-dexprs  : ID
-        | '('ID '+' numExprs ')' 
-        | '('ID '-' numExprs ')' 
-        | '(' ID ')' 
-
-termPrime:  aop factor termPrime            
-        |
-        ;
-
-factor  : term                              
-        | '(' numExprs ')'
-        | '|' numExprs '|'
-
-
 
 
 arguments : exprs argumentsPrime
@@ -142,19 +130,8 @@ argumentsPrime: ',' exprs argumentsPrime
         |
         ;
 
-boolExpr: term cop term conditions
-        | TRUE conditions
-        | FALSE conditions
-        | '!' boolExpr
-        ; 
 
-conditions: AND boolExpr
-        | OR boolExpr
-        |
-        ;
-
-
-parameter: ID idPrime ':' type parameterPrime
+parameter: ID idPrime ':' type parameterPrime               
         |
         ;
 
