@@ -57,20 +57,25 @@ stmt    : lhs '=' exprs ';'
         ;
 
 
-exprs   : NULLX
+exprs   : 
         | ID sbarket                    
         | '&' ID                        
-        | '&' ID sbarket                
-        | STRINGV                       
-        | CHARV                         
+        | '&' ID sbarket                      
         | numExprs                      
-        | boolExpr                      
+        | boolExpr 
+        | literal                     
         ;
 
 lhs     : ID sbarket
         | ID
         | '^' ID
         ;
+
+literal : INTEGER
+        | CHARV
+        | TRUE
+        | FALSE
+        | NULLX
 
 sbarket : '[' numExprs ']'
         ;
