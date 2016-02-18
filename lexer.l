@@ -50,15 +50,25 @@
 ">="				{return GE;}
 "<="				{return LE;}
 "!="				{return NEQ;}
+
 "||"				{return OR;}
-[\"].*[\"]			{return STRINGV;}
-[\'].[\']			{return CHARV;}
+[\"].*[\"]			{yylval.u_base_charptr = strdup(yytext);  return STRINGV;}
+[\'].[\']			{yylval.u_base_int=atoi(yytext);   return CHARV;}
+
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
-[0-7][0-7]* 				{return NUMBER;}
-"0X"[0-9A-F][0-9A-F]* 		{return NUMBER;}
-[0-9][0-9]*         		{return NUMBER; }
-[0-1][0-1]*"b"				{return NUMBER; }
-[a-zA-Z][0-9a-zA-Z_]*		{return ID;}
+
+[0-7][0-7]* 				{
+								yylval.u_base_int = strtol(yytext,null,8);
+								return NUMBER;
+							}
+
+"0X"[0-9A-F][0-9A-F]* 		{yylval.u_base_int=strtol(yytext,null,16); return NUMBER;}
+[0-9][0-9]*         		{yylval.u_base_int=strtol(yytext,null,10); return NUMBER; }
+[0-1][0-1]*"b"				{yylval.u_base_int=strtol(yytext,null,2); return NUMBER; }
+
+[a-zA-Z][0-9a-zA-Z_]*		{yylval.u_base_charptr = strdup(yytext); return ID;}
+
+
 [ \t\n]				; /* skip whitespace */
 "(%" 						{
 								char current = yyinput();

@@ -114,11 +114,7 @@ int u_base_int;
 */
 
 
-/** WRITE ME:
- *  This is the language from Project 1. You need to put the productions for
- *  the grammar for the language for this project here.
- */
-		
+
 s       : procedures     
         { 
             $$.u_program = new ProgramImpl($1.u_proc_list);
@@ -132,28 +128,39 @@ procedures  : procedures procedure
                 $$.u_proc_list = $1.u_proc_list;
             }
             | 
-
-procedure   : PROCEDURE ID '(' parameter ')' RETURN returnType '{' procedureBlocks '}' 
             {
-                $1.u_proc = new ProcImpl($2.u_symname,$4.u_decl_list,$7.u_type,$9.u_procedure_block);
+                $$.u_proc_list = new std::list<Proc_ptr>();
             }
             ;
 
-procedureBlocks : procedureBlocks procedureBlock
-                {
-                    $1.u_procedure_block.push_back($2.u_procedure_block);
-                }
-                |
+procedure   : PROCEDURE ID '(' parameter ')' RETURN returnType '{' procedureBlock '}' 
+            {
+                $1.u_proc = new ProcImpl(new SymName($2.u_base_charptr),$4.u_decl_list,$7.u_type,$9.u_procedure_block);
+            }
+            ;
 
-procedureBlock  : stmt
-                | decl
-                | procedure
-                | returnStmt
+
+
+procedureBlock  : decls procedures stmts returnStmt 
+                {
+                    $$.u_proc_list = new Procedure_blockImpl($1.u_decl_list, $2.u_proc_list, $3.u_stat_list, $4.u_return_stat);
+                }
                 ;
+
+decls   ： decls decl
+        {
+            $1.u_decl_list.push_back($2.u_decl);
+            $$.u_decl_list = $1.u_decl_list;
+        }
+        |  
+        {
+            $$.u_decl_list = new std::list<Decl_ptr>();
+        }
+        ;
 
 decl    : VAR ID idPrime ':' declareType ';'
         {
-            $3.u_symname_list.push_front($2.u_symname);
+            $3.u_symname_list.push_front(new SymName($2.u_base_charptr));
             $$.u_decl = new DeclImpl($4.u_symname_list,$5.u_type);
         }
         ;  
@@ -164,6 +171,9 @@ stmts   : stmts stmt
             $$.u_stat_list = $1.u_stat_list;
         }
         | 
+        {
+            $$.u_stat_list = new std::list<Stat_ptr>();
+        }
 
 
 stmt    : lhs '=' exprs ';'    
@@ -172,11 +182,11 @@ stmt    : lhs '=' exprs ';'
         }   
         | lhs '=' STRINGV ';'  
         {
-            $$.u_stat = new StringAssignment($1.u_lhs,$3.u_stringprimitive);
+            $$.u_stat = new StringAssignment($1.u_lhs,new StringPrimitive($3.u_base_charptr));
         }
         | lhs '=' ID '(' arguments ')' ';' 
         {
-            $$.u_stat = new Call($1.u_lhs,$3.u_symname,$5.u_expr_list);
+            $$.u_stat = new Call($1.u_lhs,new SymName($3.u_base_charptr),$5.u_expr_list);
         }
         | IF '(' exprs ')'  '{' stmts '}' ELSE '{' stmts '}' 
         {
@@ -256,11 +266,11 @@ exprs   : exprs '+' term
 
 term    : ID sbarket
         {
-            $$.u_expr = new ArrayAccess($1.u_symname,$2.u_expr);
+            $$.u_expr = new ArrayAccess(new Ident(new SymName($1.u_base_charptr)),$2.u_expr);
         }
         | ID
         {
-            $$.u_symname = new Ident($1.u_base_charptr);
+            $$.u_expr = new Ident(new SymName($1.u_base_charptr));
         }
         | literal
         {
@@ -294,15 +304,15 @@ term    : ID sbarket
 
 lhs     : ID sbarket          
         {
-            $$.u_lhs = new ArrayElement($1.u_symname,$2.u_expr);
+            $$.u_lhs = new ArrayElement(new SymName($1.u_base_charptr),$2.u_expr);
         }      
         | ID                        
         {
-            $$.u_lhs = new Variable($1.u_symname);
+            $$.u_lhs = new Variable(new SymName($1.u_base_charptr));
         }
         | '^' ID                    
         {
-            $$.u_lhs = new DerefVariable($2.SymName);
+            $$.u_lhs = new DerefVariable(new SymName($1.u_base_charptr));
         }
         ;
 
@@ -360,6 +370,9 @@ arguments : exprs argumentsPrime
             $$.u_expr_list = $2.u_expr_list;
         }
         |
+        {
+            $$.u_expr_list = new std::list<Expr_ptr>();
+        }
         ;
 
 argumentsPrime: ',' exprs argumentsPrime
@@ -367,21 +380,27 @@ argumentsPrime: ',' exprs argumentsPrime
             $3.u_expr_list.push_front($2.u_expr);
         }
         |
+        {
+            $$.u_expr_list = new std::list<Expr_ptr>();
+        }
         ;
 
 
 parameter: ID idPrime ':' returnType parameterPrime
         {
-            $2.u_symname_list.push_front($1.u_symname);
+            $2.u_symname_list.push_front(new SymName($1.u_base_charptr));
             $5.u_decl_list.push_front(new DeclImpl($2.u_symname_list,$4.u_type));
             $$.u_decl_list = $5.u_decl_list;
         }               
         |
+        {
+            $$.u_decl_list = new std::list<Decl_ptr>();
+        }
         ;
 
 parameterPrime : ';' ID idPrime ':' returnType parameterPrime
         {
-            $3.u_symname_list.push_front($2.u_symname);
+            $3.u_symname_list.push_front(new SymName($2.u_base_charptr));
             $6.u_decl_list.push_front(new DeclImpl($3.u_symname_list,$5.u_type));
             $$.u_decl_list = $6.u_decl_list;
         }
@@ -390,10 +409,13 @@ parameterPrime : ';' ID idPrime ':' returnType parameterPrime
 
 idPrime : ',' ID idPrime 
         {
-            $3.u_symname_list.push_front($2.u_symname);
+            $3.u_symname_list.push_front(new SymName($2.u_base_charptr));
             $$.u_symname_list = $3.u_symname_list;
         }
         |   
+        {
+            $$.u_symname_list = new std::list<SymName_ptr>();
+        }
         ;
 
 
