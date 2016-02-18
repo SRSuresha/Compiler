@@ -24,122 +24,375 @@
  %left '*' '/'
  %right Dummy 
 %%
+/*
+
+
+class ProgramImpl;
+class Program;
+class ProcImpl;
+class Proc;
+class Procedure_blockImpl;
+class Procedure_block;
+class Nested_blockImpl;
+class Nested_block;
+class DeclImpl;
+class Decl;
+class Assignment;
+class Stat;
+class StringAssignment;
+class Call;
+class IfNoElse;
+class IfWithElse;
+class WhileLoop;
+class Return;
+class Return_stat;
+class TInteger;
+class Type;
+class TCharacter;
+class TBoolean;
+class TCharPtr;
+class TIntPtr;
+class TString;
+class AddressOf;
+class PExpr;
+class Expression;
+class And;
+class Expr;
+class Div;
+class Compare;
+class Gt;
+class Gteq;
+class Lt;
+class Lteq;
+class Minus;
+class Noteq;
+class Or;
+class Plus;
+class Times;
+class Not;
+class Uminus;
+class Ident;
+class ArrayAccess;
+class IntLit;
+class CharLit;
+class BoolLit;
+class Deref;
+class Variable;
+class Lhs;
+class DerefVariable;
+class ArrayElement;
+class SymName;
+class Primitive;
+class StringPrimitive;
+typedef union
+{
+std::list<Proc_ptr>* u_proc_list;
+Program* u_program;
+std::list<Decl_ptr>* u_decl_list;
+Proc* u_proc;
+std::list<Stat_ptr>* u_stat_list;
+Procedure_block* u_procedure_block;
+Nested_block* u_nested_block;
+std::list<SymName_ptr>* u_symname_list;
+Decl* u_decl;
+Stat* u_stat;
+std::list<PExpr_ptr>* u_pexpr_list;
+Return_stat* u_return_stat;
+Type* u_type;
+PExpr* u_pexpr;
+Expr* u_expr;
+Lhs* u_lhs;
+SymName* u_symname;
+Primitive* u_primitive;
+StringPrimitive* u_stringprimitive;
+
+// a couple of hardcoded types
+char* u_base_charptr;
+int u_base_int;
+} classunion_stype;
+#define YYSTYPE classunion_stype
+*/
+
 
 /** WRITE ME:
  *  This is the language from Project 1. You need to put the productions for
  *  the grammar for the language for this project here.
  */
 		
-s       : procedures                
+s       : procedures     
+        { 
+            $$.u_program = new ProgramImpl($1.u_proc_list);
+        }           
         ;
 
 
-procedures: procedures procedure
-          | 
+procedures  : procedures procedure
+            {
+                $1.u_proc_list.push_back($2.u_proc);
+                $$.u_proc_list = $1.u_proc_list;
+            }
+            | 
 
-procedure : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts '}' 
-        ;
+procedure   : PROCEDURE ID '(' parameter ')' RETURN returnType '{' procedureBlocks '}' 
+            {
+                $1.u_proc = new ProcImpl($2.u_symname,$4.u_decl_list,$7.u_type,$9.u_procedure_block);
+            }
+            ;
 
-        ;
+procedureBlocks : procedureBlocks procedureBlock
+                {
+                    $1.u_procedure_block.push_back($2.u_procedure_block);
+                }
+                |
+
+procedureBlock  : stmt
+                | decl
+                | procedure
+                | returnStmt
+                ;
+
+decl    : VAR ID idPrime ':' declareType ';'
+        {
+            $3.u_symname_list.push_front($2.u_symname);
+            $$.u_decl = new DeclImpl($4.u_symname_list,$5.u_type);
+        }
+        ;  
 
 stmts   : stmts stmt
+        {
+            $1.u_stat_list.push_back($2.u_stat);
+            $$.u_stat_list = $1.u_stat_list;
+        }
         | 
 
 
-stmt    : lhs '=' exprs ';'      
+stmt    : lhs '=' exprs ';'    
+        {
+            $$.u_stat = new Assignment($1.u_lhs,$3.u_expr);
+        }   
         | lhs '=' STRINGV ';'  
+        {
+            $$.u_stat = new StringAssignment($1.u_lhs,$3.u_stringprimitive);
+        }
         | lhs '=' ID '(' arguments ')' ';' 
+        {
+            $$.u_stat = new Call($1.u_lhs,$3.u_symname,$5.u_expr_list);
+        }
         | IF '(' exprs ')'  '{' stmts '}' ELSE '{' stmts '}' 
+        {
+            $$.u_stat = new IfWithElse($3.u_expr, new Nested_blockImpl($6.u_stat_list), new Nested_blockImpl($10.u_stat_list));
+        }
         | IF '(' exprs ')'  '{' stmts '}'
-        | WHILE '(' exprs ')' '{' stmts '}' 
-        | PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts  '}' 
-        | VAR ID idPrime ':' declareType ';'                              
-        | RETURN exprs ';'
+        {
+            $$.u_stat = new IfNoElse($3.u_expr, new Nested_blockImpl($6.u_stat_list));
+        }
+        | WHILE '(' exprs ')' '{' stmts '}'
+        {
+            $$.u_stat = new WhileLoop($3.u_expr, new Nested_blockImpl($6.u_stat_list));
+        }
         ;
 
+returnStmt  : RETURN exprs ';'
+            {
+                $$.u_return_stat = new Return($2.u_expr);
+            }
+            ;
 
-exprs   : exprs aop term
-        | exprs cop term
+
+exprs   : exprs '+' term
+        {
+            $$.u_expr = new Plus($1.u_expr,$3.u_expr);
+        }
+        | exprs '-' term
+        {
+            $$.u_expr = new Minus($1.u_expr,$3.u_expr);
+        }
+        | exprs '*' term
+        {
+            $$.u_expr = new Times($1.u_expr,$3.u_expr);
+        }
+        | exprs '/' term
+        {
+            $$.u_expr = new Div($1.u_expr,$3.u_expr);
+        }
+        | exprs EQ  term
+        {
+            $$.u_expr = new Compare($1.u_expr,$3.u_expr);
+        }
+        | exprs GE  term
+        {
+            $$.u_expr = new Gteq($1.u_expr,$3.u_expr);
+        }
+        | exprs LE  term
+        {
+            $$.u_expr = new Lteq($1.u_expr,$3.u_expr);
+        }
+        | exprs NEQ term
+        {
+            $$.u_expr = new Noteq($1.u_expr,$3.u_expr);
+        }
+        | exprs '>' term
+        {
+            $$.u_expr = new Gt($1.u_expr,$3.u_expr);
+        }
+        | exprs '<' term
+        {
+            $$.u_expr = new Lt($1.u_expr,$3.u_expr);
+        }
         | exprs AND term
+        {
+            $$.u_expr = new And($1.u_expr,$3.u_expr);
+        }
         | exprs OR  term
-        | term                    
+        {
+            $$.u_expr = new Or($1.u_expr,$3.u_expr);
+        }
+        | term 
+        {
+            $$.u_expr = $1.u_expr;
+        }                   
         ;
 
 
 term    : ID sbarket
+        {
+            $$.u_expr = new ArrayAccess($1.u_symname,$2.u_expr);
+        }
         | ID
+        {
+            $$.u_symname = new Ident($1.u_base_charptr);
+        }
         | literal
+        {
+            $$.u_expr = $1.u_expr;
+        }
         | '(' exprs ')'
+        {
+            $$.u_expr = $2.u_expr;
+        }
         | '|' exprs '|'
-        | '!' exprs                     %prec Dummy 
-        | '^' exprs                     %prec Dummy 
-        | '-' exprs                     %prec Dummy  
-        | '&' exprs                     %prec Dummy 
+        {
+            $$.u_expr = $2.u_expr;
+        }
+        | '!' exprs                     %prec Dummy
+        {
+            $$.u_expr = new Not($2.u_expr); 
+        } 
+        | '^' exprs                     %prec Dummy
+        {
+            $$.u_expr = new Deref($2.u_expr);
+        } 
+        | '-' exprs                     %prec Dummy
+        {
+            $$.u_expr = new Uminus($2.u_expr);
+        }  
+        | '&' lhs                     %prec Dummy 
+        {
+            $$.u_expr = new AddressOf($2.lhs);
+        }
         ;
 
-lhs     : ID sbarket                
+lhs     : ID sbarket          
+        {
+            $$.u_lhs = new ArrayElement($1.u_symname,$2.u_expr);
+        }      
         | ID                        
+        {
+            $$.u_lhs = new Variable($1.u_symname);
+        }
         | '^' ID                    
+        {
+            $$.u_lhs = new DerefVariable($2.SymName);
+        }
         ;
 
 literal : NUMBER
+        {
+            $$.u_expr = new IntLit($1.u_primitive);
+        }
         | CHARV
+        {
+            $$.u_expr = new CharLit(new Primitive($1.u_base_int));
+        }
         | TRUE
+        {
+            $$.u_expr = new BoolLit(new Primitive(1));
+        }
         | FALSE
+        {
+            $$.u_expr = new BoolLit(new Primitive(0));
+        }
         | NULLX
+        {
+            $$.u_expr = new IntLit(new Primitive(0));
+        }
+        ;
 
 sbarket : '[' exprs ']'
+        {
+            $$.u_expr = $2.u_expr;
+        }
         ;
 
 
-cop     : EQ | GE | LE | NEQ | '>' | '<'
+
+
+returnType  : BOOLEAN           {$$.u_type = new TBoolean();}   
+        | INTEGER               {$$.u_type = new TInteger();}
+        | CHAR                  {$$.u_type = new TCharacter();}
+        | CHARPTR               {$$.u_type = new TCharPtr();}
+        | INTPTR                {$$.u_type = new TIntPtr();}
         ;
 
-aop     : '+' | '-' | '*' |'/'
-
-type    : BOOLEAN               
-        | INTEGER
-        | CHAR
-        | CHARPTR
-        | STRING
-        | INTPTR
-        ;
-
-returnType  : BOOLEAN           
-        | INTEGER
-        | CHAR
-        | CHARPTR
-        | INTPTR
-        ;
-
-declareType : BOOLEAN
-        | INTEGER
-        | CHAR
-        | CHARPTR
-        | INTPTR
-        | STRING '[' NUMBER ']'
+declareType : BOOLEAN               {$$.u_type = new TBoolean();} 
+        | INTEGER                   {$$.u_type = new TInteger();} 
+        | CHAR                      {$$.u_type = new TCharacter();} 
+        | CHARPTR                   {$$.u_type = new TCharPtr();} 
+        | INTPTR                    {$$.u_type = new TIntPtr();} 
+        | STRING '[' NUMBER ']'     {$$.u_type = new TString($3.u_primitive);}
         ;
 
 
 
 arguments : exprs argumentsPrime
+        {
+            $2.u_expr_list.push_front($1.u_expr);
+            $$.u_expr_list = $2.u_expr_list;
+        }
         |
         ;
 
 argumentsPrime: ',' exprs argumentsPrime
+        {
+            $3.u_expr_list.push_front($2.u_expr);
+        }
         |
         ;
 
 
-parameter: ID idPrime ':' type parameterPrime               
+parameter: ID idPrime ':' returnType parameterPrime
+        {
+            $2.u_symname_list.push_front($1.u_symname);
+            $5.u_decl_list.push_front(new DeclImpl($2.u_symname_list,$4.u_type));
+            $$.u_decl_list = $5.u_decl_list;
+        }               
         |
         ;
 
-parameterPrime : ';' ID idPrime ':' type parameterPrime
+parameterPrime : ';' ID idPrime ':' returnType parameterPrime
+        {
+            $3.u_symname_list.push_front($2.u_symname);
+            $6.u_decl_list.push_front(new DeclImpl($3.u_symname_list,$5.u_type));
+            $$.u_decl_list = $6.u_decl_list;
+        }
         |
         ;
 
 idPrime : ',' ID idPrime 
+        {
+            $3.u_symname_list.push_front($2.u_symname);
+            $$.u_symname_list = $3.u_symname_list;
+        }
         |   
         ;
 
