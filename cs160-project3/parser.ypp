@@ -124,21 +124,21 @@ returnStmt  : RETURN exprs ';'
             ;
 
 
-exprs   : exprs '+' term
-        {
-            $$.u_expr = new Plus($1.u_expr,$3.u_expr);
-        }
-        | exprs '-' term
-        {
-            $$.u_expr = new Minus($1.u_expr,$3.u_expr);
-        }
-        | exprs '*' term
+exprs   : exprs '*' term
         {
             $$.u_expr = new Times($1.u_expr,$3.u_expr);
         }
         | exprs '/' term
         {
             $$.u_expr = new Div($1.u_expr,$3.u_expr);
+        }
+        | exprs '+' term
+        {
+            $$.u_expr = new Plus($1.u_expr,$3.u_expr);
+        }
+        | exprs '-' term
+        {
+            $$.u_expr = new Minus($1.u_expr,$3.u_expr);
         }
         | exprs EQ  term
         {
@@ -274,7 +274,7 @@ declareType : BOOLEAN               {$$.u_type = new TBoolean();}
         | CHAR                      {$$.u_type = new TCharacter();} 
         | CHARPTR                   {$$.u_type = new TCharPtr();} 
         | INTPTR                    {$$.u_type = new TIntPtr();} 
-        | STRING '[' NUMBER ']'     {$$.u_type = new TString($3.u_primitive);}
+        | STRING '[' NUMBER ']'     {$$.u_type = new TString(new Primitive($3.u_base_int));}
         ;
 
 

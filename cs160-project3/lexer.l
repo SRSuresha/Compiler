@@ -55,14 +55,15 @@
 
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 
-[0-7][0-7]* 				{
+0[0-7]* 				{
 								yylval.u_base_int = strtol(yytext,NULL,8);
 								return NUMBER;
 							}
 
 0X[0-9A-F][0-9A-F]* 		{yylval.u_base_int=strtol(yytext,NULL,16); return NUMBER;}
+0x[0-9A-F][0-9A-F]* 		{yylval.u_base_int=strtol(yytext,NULL,16); return NUMBER;}
 [0-9][0-9]*         		{yylval.u_base_int=strtol(yytext,NULL,10); return NUMBER; }
-[0-1][0-1]*b				{yylval.u_base_int=strtol(yytext,NULL,2);  return NUMBER; }
+0[0-1]*b				{yylval.u_base_int=strtol(yytext,NULL,2);  return NUMBER; }
 
 [a-zA-Z][0-9a-zA-Z_]*		{yylval.u_base_charptr = strdup(yytext); return ID;}
 
