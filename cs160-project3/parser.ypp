@@ -124,51 +124,51 @@ returnStmt  : RETURN exprs ';'
             ;
 
 
-exprs   : exprs '*' term
+exprs   : exprs '*' exprs
         {
             $$.u_expr = new Times($1.u_expr,$3.u_expr);
         }
-        | exprs '/' term
+        | exprs '/' exprs
         {
             $$.u_expr = new Div($1.u_expr,$3.u_expr);
         }
-        | exprs '+' term
+        | exprs '+' exprs
         {
             $$.u_expr = new Plus($1.u_expr,$3.u_expr);
         }
-        | exprs '-' term
+        | exprs '-' exprs
         {
             $$.u_expr = new Minus($1.u_expr,$3.u_expr);
         }
-        | exprs EQ  term
+        | exprs EQ  exprs
         {
             $$.u_expr = new Compare($1.u_expr,$3.u_expr);
         }
-        | exprs GE  term
+        | exprs GE  exprs
         {
             $$.u_expr = new Gteq($1.u_expr,$3.u_expr);
         }
-        | exprs LE  term
+        | exprs LE  exprs
         {
             $$.u_expr = new Lteq($1.u_expr,$3.u_expr);
         }
-        | exprs NEQ term
+        | exprs NEQ exprs
         {
             $$.u_expr = new Noteq($1.u_expr,$3.u_expr);
         }
-        | exprs '>' term
+        | exprs '>' exprs
         {
             $$.u_expr = new Gt($1.u_expr,$3.u_expr);
         }
-        | exprs '<' term
+        | exprs '<' exprs
         {
             $$.u_expr = new Lt($1.u_expr,$3.u_expr);
         }
-        | exprs AND term
+        | exprs AND exprs
         {
             $$.u_expr = new And($1.u_expr,$3.u_expr);
         }
-        | exprs OR  term
+        | exprs OR  exprs
         {
             $$.u_expr = new Or($1.u_expr,$3.u_expr);
         }
