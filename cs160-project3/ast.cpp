@@ -319,30 +319,30 @@ extern int yylineno;
  
  
 /********* Assignment ************/
- Assignment::Assignment(Lhs *p1, PExpr *p2)  {
+ Assignment::Assignment(Lhs *p1, Expr *p2)  {
 	m_lhs = p1;
-	m_pexpr = p2;
+	m_expr = p2;
 	m_attribute.lineno = yylineno;
 	m_parent_attribute = NULL;
 	m_lhs->m_parent_attribute = &m_attribute;
- 	m_pexpr->m_parent_attribute = &m_attribute;
+ 	m_expr->m_parent_attribute = &m_attribute;
   }
  Assignment::Assignment(const Assignment & other) {
 	m_lhs = other.m_lhs->clone();
-	m_pexpr = other.m_pexpr->clone();
+	m_expr = other.m_expr->clone();
  }
  Assignment &Assignment::operator=(const Assignment & other) { Assignment tmp(other); swap(tmp); return *this; }
  void Assignment::swap(Assignment & other) {
 	std::swap(m_lhs, other.m_lhs);
-	std::swap(m_pexpr, other.m_pexpr);
+	std::swap(m_expr, other.m_expr);
  }
  Assignment::~Assignment() {
  	delete(m_lhs);
- 	delete(m_pexpr);
+ 	delete(m_expr);
   }
  void Assignment::visit_children( Visitor* v ) {
  	m_lhs->accept( v );
- 	m_pexpr->accept( v );
+ 	m_expr->accept( v );
   }
  void Assignment::accept(Visitor *v) { v->visitAssignment(this); }
  Assignment *Assignment::clone() const { return new Assignment(*this); }
@@ -379,56 +379,56 @@ extern int yylineno;
  
  
 /********* Call ************/
- Call::Call(Lhs *p1, SymName *p2, std::list<PExpr_ptr> *p3)  {
+ Call::Call(Lhs *p1, SymName *p2, std::list<Expr_ptr> *p3)  {
 	m_lhs = p1;
 	m_symname = p2;
-	m_pexpr_list = p3;
+	m_expr_list = p3;
 	m_attribute.lineno = yylineno;
 	m_parent_attribute = NULL;
 	m_lhs->m_parent_attribute = &m_attribute;
  	m_symname->m_parent_attribute = &m_attribute;
- 	std::list<PExpr_ptr>::iterator m_pexpr_list_iter;
-	for(m_pexpr_list_iter = m_pexpr_list->begin();
-	  m_pexpr_list_iter != m_pexpr_list->end();
-	  ++m_pexpr_list_iter){
-		(*m_pexpr_list_iter)->m_parent_attribute = &m_attribute;
+ 	std::list<Expr_ptr>::iterator m_expr_list_iter;
+	for(m_expr_list_iter = m_expr_list->begin();
+	  m_expr_list_iter != m_expr_list->end();
+	  ++m_expr_list_iter){
+		(*m_expr_list_iter)->m_parent_attribute = &m_attribute;
 	}
  }
  Call::Call(const Call & other) {
 	m_lhs = other.m_lhs->clone();
 	m_symname = other.m_symname->clone();
-	m_pexpr_list = new std::list<PExpr_ptr>;
-	std::list<PExpr_ptr>::iterator m_pexpr_list_iter;
-	for(m_pexpr_list_iter = other.m_pexpr_list->begin();
-	  m_pexpr_list_iter != other.m_pexpr_list->end();
-	  ++m_pexpr_list_iter){
-		m_pexpr_list->push_back( (*m_pexpr_list_iter)->clone() );
+	m_expr_list = new std::list<Expr_ptr>;
+	std::list<Expr_ptr>::iterator m_expr_list_iter;
+	for(m_expr_list_iter = other.m_expr_list->begin();
+	  m_expr_list_iter != other.m_expr_list->end();
+	  ++m_expr_list_iter){
+		m_expr_list->push_back( (*m_expr_list_iter)->clone() );
 	}
  }
  Call &Call::operator=(const Call & other) { Call tmp(other); swap(tmp); return *this; }
  void Call::swap(Call & other) {
 	std::swap(m_lhs, other.m_lhs);
 	std::swap(m_symname, other.m_symname);
-	std::swap(m_pexpr_list, other.m_pexpr_list);
+	std::swap(m_expr_list, other.m_expr_list);
  }
  Call::~Call() {
  	delete(m_lhs);
  	delete(m_symname);
- 	std::list<PExpr_ptr>::iterator m_pexpr_list_iter;
-	for(m_pexpr_list_iter = m_pexpr_list->begin();
-	  m_pexpr_list_iter != m_pexpr_list->end();
-	  ++m_pexpr_list_iter){
-		delete( *m_pexpr_list_iter );
+ 	std::list<Expr_ptr>::iterator m_expr_list_iter;
+	for(m_expr_list_iter = m_expr_list->begin();
+	  m_expr_list_iter != m_expr_list->end();
+	  ++m_expr_list_iter){
+		delete( *m_expr_list_iter );
 	}
  }
  void Call::visit_children( Visitor* v ) {
  	m_lhs->accept( v );
  	m_symname->accept( v );
- 	std::list<PExpr_ptr>::iterator m_pexpr_list_iter;
-	for(m_pexpr_list_iter = m_pexpr_list->begin();
-	  m_pexpr_list_iter != m_pexpr_list->end();
-	  ++m_pexpr_list_iter){
-		(*m_pexpr_list_iter)->accept( v );
+ 	std::list<Expr_ptr>::iterator m_expr_list_iter;
+	for(m_expr_list_iter = m_expr_list->begin();
+	  m_expr_list_iter != m_expr_list->end();
+	  ++m_expr_list_iter){
+		(*m_expr_list_iter)->accept( v );
 	}
  }
  void Call::accept(Visitor *v) { v->visitCall(this); }
@@ -436,29 +436,29 @@ extern int yylineno;
  
  
 /********* IfNoElse ************/
- IfNoElse::IfNoElse(PExpr *p1, Nested_block *p2)  {
-	m_pexpr = p1;
+ IfNoElse::IfNoElse(Expr *p1, Nested_block *p2)  {
+	m_expr = p1;
 	m_nested_block = p2;
 	m_attribute.lineno = yylineno;
 	m_parent_attribute = NULL;
-	m_pexpr->m_parent_attribute = &m_attribute;
+	m_expr->m_parent_attribute = &m_attribute;
  	m_nested_block->m_parent_attribute = &m_attribute;
   }
  IfNoElse::IfNoElse(const IfNoElse & other) {
-	m_pexpr = other.m_pexpr->clone();
+	m_expr = other.m_expr->clone();
 	m_nested_block = other.m_nested_block->clone();
  }
  IfNoElse &IfNoElse::operator=(const IfNoElse & other) { IfNoElse tmp(other); swap(tmp); return *this; }
  void IfNoElse::swap(IfNoElse & other) {
-	std::swap(m_pexpr, other.m_pexpr);
+	std::swap(m_expr, other.m_expr);
 	std::swap(m_nested_block, other.m_nested_block);
  }
  IfNoElse::~IfNoElse() {
- 	delete(m_pexpr);
+ 	delete(m_expr);
  	delete(m_nested_block);
   }
  void IfNoElse::visit_children( Visitor* v ) {
- 	m_pexpr->accept( v );
+ 	m_expr->accept( v );
  	m_nested_block->accept( v );
   }
  void IfNoElse::accept(Visitor *v) { v->visitIfNoElse(this); }
@@ -466,34 +466,34 @@ extern int yylineno;
  
  
 /********* IfWithElse ************/
- IfWithElse::IfWithElse(PExpr *p1, Nested_block *p2, Nested_block *p3)  {
-	m_pexpr = p1;
+ IfWithElse::IfWithElse(Expr *p1, Nested_block *p2, Nested_block *p3)  {
+	m_expr = p1;
 	m_nested_block_1 = p2;
 	m_nested_block_2 = p3;
 	m_attribute.lineno = yylineno;
 	m_parent_attribute = NULL;
-	m_pexpr->m_parent_attribute = &m_attribute;
+	m_expr->m_parent_attribute = &m_attribute;
  	m_nested_block_1->m_parent_attribute = &m_attribute;
  	m_nested_block_2->m_parent_attribute = &m_attribute;
   }
  IfWithElse::IfWithElse(const IfWithElse & other) {
-	m_pexpr = other.m_pexpr->clone();
+	m_expr = other.m_expr->clone();
 	m_nested_block_1 = other.m_nested_block_1->clone();
 	m_nested_block_2 = other.m_nested_block_2->clone();
  }
  IfWithElse &IfWithElse::operator=(const IfWithElse & other) { IfWithElse tmp(other); swap(tmp); return *this; }
  void IfWithElse::swap(IfWithElse & other) {
-	std::swap(m_pexpr, other.m_pexpr);
+	std::swap(m_expr, other.m_expr);
 	std::swap(m_nested_block_1, other.m_nested_block_1);
 	std::swap(m_nested_block_2, other.m_nested_block_2);
  }
  IfWithElse::~IfWithElse() {
- 	delete(m_pexpr);
+ 	delete(m_expr);
  	delete(m_nested_block_1);
  	delete(m_nested_block_2);
   }
  void IfWithElse::visit_children( Visitor* v ) {
- 	m_pexpr->accept( v );
+ 	m_expr->accept( v );
  	m_nested_block_1->accept( v );
  	m_nested_block_2->accept( v );
   }
@@ -502,29 +502,29 @@ extern int yylineno;
  
  
 /********* WhileLoop ************/
- WhileLoop::WhileLoop(PExpr *p1, Nested_block *p2)  {
-	m_pexpr = p1;
+ WhileLoop::WhileLoop(Expr *p1, Nested_block *p2)  {
+	m_expr = p1;
 	m_nested_block = p2;
 	m_attribute.lineno = yylineno;
 	m_parent_attribute = NULL;
-	m_pexpr->m_parent_attribute = &m_attribute;
+	m_expr->m_parent_attribute = &m_attribute;
  	m_nested_block->m_parent_attribute = &m_attribute;
   }
  WhileLoop::WhileLoop(const WhileLoop & other) {
-	m_pexpr = other.m_pexpr->clone();
+	m_expr = other.m_expr->clone();
 	m_nested_block = other.m_nested_block->clone();
  }
  WhileLoop &WhileLoop::operator=(const WhileLoop & other) { WhileLoop tmp(other); swap(tmp); return *this; }
  void WhileLoop::swap(WhileLoop & other) {
-	std::swap(m_pexpr, other.m_pexpr);
+	std::swap(m_expr, other.m_expr);
 	std::swap(m_nested_block, other.m_nested_block);
  }
  WhileLoop::~WhileLoop() {
- 	delete(m_pexpr);
+ 	delete(m_expr);
  	delete(m_nested_block);
   }
  void WhileLoop::visit_children( Visitor* v ) {
- 	m_pexpr->accept( v );
+ 	m_expr->accept( v );
  	m_nested_block->accept( v );
   }
  void WhileLoop::accept(Visitor *v) { v->visitWhileLoop(this); }
@@ -532,24 +532,24 @@ extern int yylineno;
  
  
 /********* Return ************/
- Return::Return(PExpr *p1)  {
-	m_pexpr = p1;
+ Return::Return(Expr *p1)  {
+	m_expr = p1;
 	m_attribute.lineno = yylineno;
 	m_parent_attribute = NULL;
-	m_pexpr->m_parent_attribute = &m_attribute;
+	m_expr->m_parent_attribute = &m_attribute;
   }
  Return::Return(const Return & other) {
-	m_pexpr = other.m_pexpr->clone();
+	m_expr = other.m_expr->clone();
  }
  Return &Return::operator=(const Return & other) { Return tmp(other); swap(tmp); return *this; }
  void Return::swap(Return & other) {
-	std::swap(m_pexpr, other.m_pexpr);
+	std::swap(m_expr, other.m_expr);
  }
  Return::~Return() {
- 	delete(m_pexpr);
+ 	delete(m_expr);
   }
  void Return::visit_children( Visitor* v ) {
- 	m_pexpr->accept( v );
+ 	m_expr->accept( v );
   }
  void Return::accept(Visitor *v) { v->visitReturn(this); }
  Return *Return::clone() const { return new Return(*this); }
@@ -691,30 +691,6 @@ extern int yylineno;
   }
  void AddressOf::accept(Visitor *v) { v->visitAddressOf(this); }
  AddressOf *AddressOf::clone() const { return new AddressOf(*this); }
- 
- 
-/********* Expression ************/
- Expression::Expression(Expr *p1)  {
-	m_expr = p1;
-	m_attribute.lineno = yylineno;
-	m_parent_attribute = NULL;
-	m_expr->m_parent_attribute = &m_attribute;
-  }
- Expression::Expression(const Expression & other) {
-	m_expr = other.m_expr->clone();
- }
- Expression &Expression::operator=(const Expression & other) { Expression tmp(other); swap(tmp); return *this; }
- void Expression::swap(Expression & other) {
-	std::swap(m_expr, other.m_expr);
- }
- Expression::~Expression() {
- 	delete(m_expr);
-  }
- void Expression::visit_children( Visitor* v ) {
- 	m_expr->accept( v );
-  }
- void Expression::accept(Visitor *v) { v->visitExpression(this); }
- Expression *Expression::clone() const { return new Expression(*this); }
  
  
 /********* And ************/

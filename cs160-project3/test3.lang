@@ -1,11 +1,3 @@
-procedure foo(x: integer) return integer
+procedure Main(x : integer; y : char) return boolean
 {
-    return 2*x;
-}
-
-procedure Main() return integer
-{
-    var a : integer;
-    a = foo(3); 
-    return 0;
 }

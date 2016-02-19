@@ -16,280 +16,327 @@
 /* Enables verbose error messages */
 %error-verbose
 
-%token MAIN BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
- %token NUMBER  AND OR STRINGV CHARV TRUE FALSE 
+ %token  BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
+ %token NUMBER   STRINGV CHARV TRUE FALSE AND OR
+ %left AND OR
  %left '<' '>' '=' NEQ LE GE EQ 
  %left '+' '-'
  %left '*' '/'
- %right Dummy 
-
-/*
-
-
-class ProgramImpl;
-class Program;
-class ProcImpl;
-class Proc;
-class Procedure_blockImpl;
-class Procedure_block;
-class Nested_blockImpl;
-class Nested_block;
-class DeclImpl;
-class Decl;
-class Assignment;
-class Stat;
-class StringAssignment;
-class Call;
-class IfNoElse;
-class IfWithElse;
-class WhileLoop;
-class Return;
-class Return_stat;
-class TInteger;
-class Type;
-class TCharacter;
-class TBoolean;
-class TCharPtr;
-class TIntPtr;
-class TString;
-class AddressOf;
-class PExpr;
-class Expression;
-class And;
-class Expr;
-class Div;
-class Compare;
-class Gt;
-class Gteq;
-class Lt;
-class Lteq;
-class Minus;
-class Noteq;
-class Or;
-class Plus;
-class Times;
-class Not;
-class Uminus;
-class Ident;
-class ArrayAccess;
-class IntLit;
-class CharLit;
-class BoolLit;
-class Deref;
-class Variable;
-class Lhs;
-class DerefVariable;
-class ArrayElement;
-class SymName;
-class Primitive;
-class StringPrimitive;
-typedef union
-{
-std::list<Proc_ptr>* u_proc_list;
-Program* u_program;
-std::list<Decl_ptr>* u_decl_list;
-Proc* u_proc;
-std::list<Stat_ptr>* u_stat_list;
-Procedure_block* u_procedure_block;
-Nested_block* u_nested_block;
-std::list<SymName_ptr>* u_symname_list;
-Decl* u_decl;
-Stat* u_stat;
-std::list<PExpr_ptr>* u_pexpr_list;
-Return_stat* u_return_stat;
-Type* u_type;
-PExpr* u_pexpr;
-Expr* u_expr;
-Lhs* u_lhs;
-SymName* u_symname;
-Primitive* u_primitive;
-StringPrimitive* u_stringprimitive;
-
-// a couple of hardcoded types
-char* u_base_charptr;
-int u_base_int;
-} classunion_stype;
-#define YYSTYPE classunion_stype
-*/
-
-
+ %right Dummy  
 
 %%
 
 
 
 
-s       : procedures  
+s       : procedures     
         { 
-            $$.u_program = new ProgramImpl($1.u_proc_list);
+            ast = new ProgramImpl($1.u_proc_list);
+        }           
+        ;
+
+
+procedures  : procedures procedure
+            {
+                $1.u_proc_list->push_back($2.u_proc);
+                $$.u_proc_list = $1.u_proc_list;
+            }
+            | 
+            {
+                $$.u_proc_list = new std::list<Proc_ptr>();
+            }
+            ;
+
+procedure   : PROCEDURE ID '(' parameter ')' RETURN returnType '{' procedureBlock '}' 
+            {
+                $$.u_proc = new ProcImpl(new SymName($2.u_base_charptr),$4.u_decl_list,$7.u_type,$9.u_procedure_block);
+            }
+            ;
+
+
+
+procedureBlock  : decls procedures stmts returnStmt 
+                {
+                    $$.u_procedure_block = new Procedure_blockImpl($1.u_decl_list, $2.u_proc_list, $3.u_stat_list, $4.u_return_stat);
+                }
+                ;
+
+decls   : decls decl
+        {
+            $1.u_decl_list->push_back($2.u_decl);
+            $$.u_decl_list = $1.u_decl_list;
+        }
+        |  
+        {
+            $$.u_decl_list = new std::list<Decl_ptr>();
         }
         ;
 
-procedures  : procedure procedures
-            | procedure
 
-procedure : PROCEDURE ID '(' parameter ')' RETURN returnType '{' stmts  '}' 
-            {
-                $$.u_proc = new ProcImpl($2.u_symname,$4.u_decl_list,$7.u_type,$9.u_stat_list);
-            }
-        |
-        ;
+decl    : VAR ID idPrime ':' declareType ';'
+        {
+            $3.u_symname_list->push_front(new SymName($2.u_base_charptr));
+            $$.u_decl = new DeclImpl($3.u_symname_list,$5.u_type);
+        }
+        ;  
+
+stmts   : stmts stmt
+        {
+            $1.u_stat_list->push_back($2.u_stat);
+            $$.u_stat_list = $1.u_stat_list;
+        }
+        | 
+        {
+            $$.u_stat_list = new std::list<Stat_ptr>();
+        }
 
 
-stmts   : stmt stmts
-        | stmt
-
-stmt   : lhs '=' exprs ';'    
+stmt    : lhs '=' exprs ';'    
         {
             $$.u_stat = new Assignment($1.u_lhs,$3.u_expr);
         }   
+        | lhs '=' STRINGV ';'  
+        {
+            $$.u_stat = new StringAssignment($1.u_lhs,new StringPrimitive($3.u_base_charptr));
+        }
         | lhs '=' ID '(' arguments ')' ';' 
         {
-            $$.u_stat = new Call($1.u_lhs,$3.u_symname,$5.u_expr);
+            $$.u_stat = new Call($1.u_lhs,new SymName($3.u_base_charptr),$5.u_expr_list);
         }
-        | ifelseStmt 
+        | IF '(' exprs ')'  '{' stmts '}' ELSE '{' stmts '}' 
         {
-            $$.u_stat = $1.u_stat;
+            $$.u_stat = new IfWithElse($3.u_expr, new Nested_blockImpl($6.u_stat_list), new Nested_blockImpl($10.u_stat_list));
         }
-        | ifnoelseStmt
+        | IF '(' exprs ')'  '{' stmts '}'
         {
-            $$.u_stat = $1.u_stat;
+            $$.u_stat = new IfNoElse($3.u_expr, new Nested_blockImpl($6.u_stat_list));
         }
-        | whileStmt 
+        | WHILE '(' exprs ')' '{' stmts '}'
         {
-            $$.u_stat = $1.u_stat;
+            $$.u_stat = new WhileLoop($3.u_expr, new Nested_blockImpl($6.u_stat_list));
         }
-        | PROCEDURE ID '(' parameter ')' RETURN type '{' stmts '}' 
+        ;
+
+returnStmt  : RETURN exprs ';'
+            {
+                $$.u_return_stat = new Return($2.u_expr);
+            }
+            ;
+
+
+exprs   : exprs '+' term
         {
-            $$.u_proc = new ProcImpl($2.u_symname,$4.u_decl_list,$7.u_type,$9.u_stat_list);
+            $$.u_expr = new Plus($1.u_expr,$3.u_expr);
         }
-        | VAR ID idPrime ':' declareType ';' {
-            std::list<SymName_ptr> *p1 = $3.u_symname_list;
-            p1->push_front($2.u_symname);
-            $$.u_decl = new DeclImpl(p1,$5.u_type);
-        }
-        | RETURN exprs ';'
+        | exprs '-' term
         {
-            $$.u_return_stat = new Return($2.u_expr);
+            $$.u_expr = new Minus($1.u_expr,$3.u_expr);
         }
-        |
+        | exprs '*' term
+        {
+            $$.u_expr = new Times($1.u_expr,$3.u_expr);
+        }
+        | exprs '/' term
+        {
+            $$.u_expr = new Div($1.u_expr,$3.u_expr);
+        }
+        | exprs EQ  term
+        {
+            $$.u_expr = new Compare($1.u_expr,$3.u_expr);
+        }
+        | exprs GE  term
+        {
+            $$.u_expr = new Gteq($1.u_expr,$3.u_expr);
+        }
+        | exprs LE  term
+        {
+            $$.u_expr = new Lteq($1.u_expr,$3.u_expr);
+        }
+        | exprs NEQ term
+        {
+            $$.u_expr = new Noteq($1.u_expr,$3.u_expr);
+        }
+        | exprs '>' term
+        {
+            $$.u_expr = new Gt($1.u_expr,$3.u_expr);
+        }
+        | exprs '<' term
+        {
+            $$.u_expr = new Lt($1.u_expr,$3.u_expr);
+        }
+        | exprs AND term
+        {
+            $$.u_expr = new And($1.u_expr,$3.u_expr);
+        }
+        | exprs OR  term
+        {
+            $$.u_expr = new Or($1.u_expr,$3.u_expr);
+        }
+        | term 
+        {
+            $$.u_expr = $1.u_expr;
+        }                   
         ;
 
 
-exprs   : NULLX              {$$.u_expr = $1}
-        | ID sbarket         {$$.u_expr = new ArrayAccess($1.u_symname,$2.u_expr);}
-        | '&' lhs            {$$.u_expr = new AddressOf($2.u_lhs);}
-        | STRINGV            {$$.u_expr = $1.u_stringprimitive;}          
-        | CHARV              {$$.u_expr = $1.u_base_charptr;}
-        | numExprs           {$$.u_expr = $1.u_expr;}           
-        | boolExpr           {$$.u_expr = $1.u_expr;}           
+term    : ID sbarket
+        {
+            $$.u_expr = new ArrayAccess(new SymName($1.u_base_charptr),$2.u_expr);
+        }
+        | ID
+        {
+            $$.u_expr = new Ident(new SymName($1.u_base_charptr));
+        }
+        | literal
+        {
+            $$.u_expr = $1.u_expr;
+        }
+        | '(' exprs ')'
+        {
+            $$.u_expr = $2.u_expr;
+        }
+        | '|' exprs '|'
+        {
+            $$.u_expr = $2.u_expr;
+        }
+        | '!' exprs                     %prec Dummy
+        {
+            $$.u_expr = new Not($2.u_expr); 
+        } 
+        | '^' exprs                     %prec Dummy
+        {
+            $$.u_expr = new Deref($2.u_expr);
+        } 
+        | '-' exprs                     %prec Dummy
+        {
+            $$.u_expr = new Uminus($2.u_expr);
+        }  
+        | '&' lhs                     %prec Dummy 
+        {
+            $$.u_expr = new AddressOf($2.u_lhs);
+        }
         ;
 
-lhs     : ID sbarket        {$$.u_lhs = new ArrayElement($1.u_symname,$2.u_expr);}
-        | ID                {$$.u_lhs = new Variable($1.u_symname);}
-        | '^' ID            {$$.u_lhs = new DerefVariable($2.u_symname);}
+lhs     : ID sbarket          
+        {
+            $$.u_lhs = new ArrayElement(new SymName($1.u_base_charptr),$2.u_expr);
+        }      
+        | ID                        
+        {
+            $$.u_lhs = new Variable(new SymName($1.u_base_charptr));
+        }
+        | '^' ID                    
+        {
+            $$.u_lhs = new DerefVariable(new SymName($1.u_base_charptr));
+        }
+        ;
+
+literal : NUMBER
+        {
+            $$.u_expr = new IntLit(new Primitive($1.u_base_int));
+        }
+        | CHARV
+        {
+            $$.u_expr = new CharLit(new Primitive($1.u_base_int));
+        }
+        | TRUE
+        {
+            $$.u_expr = new BoolLit(new Primitive(1));
+        }
+        | FALSE
+        {
+            $$.u_expr = new BoolLit(new Primitive(0));
+        }
+        | NULLX
+        {
+            $$.u_expr = new IntLit(new Primitive(0));
+        }
+        ;
+
+sbarket : '[' exprs ']'
+        {
+            $$.u_expr = $2.u_expr;
+        }
         ;
 
 
-sbarket : '[' numExprs ']'  {$$.u_expr = $2.u_expr;}
+
+
+returnType  : BOOLEAN           {$$.u_type = new TBoolean();}   
+        | INTEGER               {$$.u_type = new TInteger();}
+        | CHAR                  {$$.u_type = new TCharacter();}
+        | CHARPTR               {$$.u_type = new TCharPtr();}
+        | INTPTR                {$$.u_type = new TIntPtr();}
         ;
 
-
-cop     : EQ | GE | LE | NEQ | '>' | '<'
-        ;
-
-aop     : '+' | '-' | '*' |'/'
-
-type    : BOOLEAN           {$$.u_type = new TBoolean();}
-        | INTEGER           {$$.u_type = new TInteger();}
-        | CHAR              {$$.u_type = new TCharacter();}
-        | CHARPTR           {$$.u_type = new TCharPtr();}
-        | STRING            {$$.u_type = new TString();}
-        | INTPTR            {$$.u_type = new TIntPtr();}
-        ;
-
-returnType  : BOOLEAN       {$$.u_type = new TBoolean();}
-        | INTEGER           {$$.u_type = new TInteger();}
-        | CHAR              {$$.u_type = new TCharacter();}
-        | CHARPTR           {$$.u_type = new TCharPtr();}
-        | INTPTR            {$$.u_type = new TIntPtr();}
-        ;
-
-declareType : BOOLEAN               {$$.u_type = new TBoolean();}
-        | INTEGER                   {$$.u_type = new TInteger();}
-        | CHAR                      {$$.u_type = new TCharacter();}
-        | CHARPTR                   {$$.u_type = new TCharPtr();}
-        | INTPTR                    {$$.u_type = new TIntPtr();}
+declareType : BOOLEAN               {$$.u_type = new TBoolean();} 
+        | INTEGER                   {$$.u_type = new TInteger();} 
+        | CHAR                      {$$.u_type = new TCharacter();} 
+        | CHARPTR                   {$$.u_type = new TCharPtr();} 
+        | INTPTR                    {$$.u_type = new TIntPtr();} 
         | STRING '[' NUMBER ']'     {$$.u_type = new TString($3.u_primitive);}
         ;
 
-numExprs: factor termPrime
-        ;
 
-term    : ID
-        | NUMBER
-        | '^' exprs     {$$.expr = new Deref($2.u_expr);}
-        | '-' term                      %prec Dummy
-        ;
-
-termPrime:  aop factor termPrime            {printf("AOP Factor TermPrime\n");}
-        |
-        ;
-
-factor  : term                              {printf("Term\n");}
-        | '(' numExprs ')'
-        | '|' numExprs '|'
 
 arguments : exprs argumentsPrime
+        {
+            $2.u_expr_list->push_front($1.u_expr);
+            $$.u_expr_list = $2.u_expr_list;
+        }
         |
+        {
+            $$.u_expr_list = new std::list<Expr_ptr>();
+        }
         ;
 
 argumentsPrime: ',' exprs argumentsPrime
+        {
+            $3.u_expr_list->push_front($2.u_expr);
+        }
         |
+        {
+            $$.u_expr_list = new std::list<Expr_ptr>();
+        }
         ;
-
-boolExpr: term cop term conditions 
-        | TRUE conditions
-        | FALSE conditions
-        | '!' boolExpr
-        ; 
-
-conditions: AND boolExpr
-        | OR boolExpr
-        |
-        ;
-
 
 
 parameter: ID idPrime ':' returnType parameterPrime
+        {
+            $2.u_symname_list->push_front(new SymName($1.u_base_charptr));
+            $5.u_decl_list->push_front(new DeclImpl($2.u_symname_list,$4.u_type));
+            $$.u_decl_list = $5.u_decl_list;
+        }               
         |
+        {
+            $$.u_decl_list = new std::list<Decl_ptr>();
+        }
         ;
 
 parameterPrime : ';' ID idPrime ':' returnType parameterPrime
+        {
+            $3.u_symname_list->push_front(new SymName($2.u_base_charptr));
+            $6.u_decl_list->push_front(new DeclImpl($3.u_symname_list,$5.u_type));
+            $$.u_decl_list = $6.u_decl_list;
+        }
         |
+        {
+            $$.u_decl_list = new std::list<Decl_ptr>();
+        }
         ;
 
 idPrime : ',' ID idPrime 
+        {
+            $3.u_symname_list->push_front(new SymName($2.u_base_charptr));
+            $$.u_symname_list = $3.u_symname_list;
+        }
         |   
-        ;
-
-ifelseStmt  : IF '(' boolExpr ')'  '{' stmts '}' ELSE '{' stmts '}'
-            {
-                $$.u_stat = new IfWithElse($3.u_expr,$6.u_nested_block,$10.u_nested_block);
-            }
-        ;
-
-ifnoelseStmt :IF '(' boolExpr ')'  '{' stmts '}' 
         {
-            $$.u_stat = new IfNoElse($3.u_expr,$6.u_nested_block);
+            $$.u_symname_list = new std::list<SymName_ptr>();
         }
         ;
 
-whileStmt: WHILE '(' boolExpr ')' '{' stmts '}'     
-        {
-            $$.u_stat = new WhileLoop($3.u_expr,$6.u_nested_block);
-        }
-        ;
+
 
 %%
 
