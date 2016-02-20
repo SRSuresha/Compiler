@@ -83,7 +83,7 @@
 								}
 							}
 
-
+<<EOF>> 					{yyterminate();}
 .                   yyerror((char *) "invalid character");
 
 %%

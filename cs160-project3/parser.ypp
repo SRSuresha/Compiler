@@ -210,6 +210,10 @@ term    : ID sbarket
         | '-' exprs                     %prec Dummy
         {
             $$.u_expr = new Uminus($2.u_expr);
+        }
+        | '+' exprs                     %prec Dummy
+        {
+            $$ = $2;
         }  
         | '&' lhs                     %prec Dummy 
         {
