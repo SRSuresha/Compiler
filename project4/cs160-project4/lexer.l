@@ -7,7 +7,7 @@
     #include "ast.hpp"
     #include "parser.hpp"
 
-    void yyerror(const char *);
+     void yyerror(const char *); 
 %}
 
 
@@ -70,6 +70,7 @@
 
 <<EOF>> 					{yyterminate();}
 .                   yyerror((char *) "invalid character");
+
 
 %%
 

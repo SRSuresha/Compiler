@@ -250,7 +250,7 @@ literal : NUMBER
         }
         | NULLX
         {
-            $$.u_expr = new NullLit();
+            $$.u_expr = new IntLit(new Primitive(0));
         }
         ;
 
@@ -336,6 +336,9 @@ idPrime : ',' ID idPrime
             $$.u_symname_list = new std::list<SymName_ptr>();
         }
         ;
+
+
+
 
 %%
 

@@ -202,8 +202,8 @@ class SymTab
 *   // each entry also needs a pointer to a symbol.
 *   // don't need to be uniqe, multiple
 *   // enties might point to the same symbol
-*   Symbol* foo_s = new Symbol(foo_string);
-*   Symbol* bar_s = new Symbol(bar_string);
+*   Symbol* foo_s = new Symbol();
+*   Symbol* bar_s = new Symbol();
 *
 *   bool is_inserted;
 *   is_inserted = st.insert( foo_string, foo_s );
