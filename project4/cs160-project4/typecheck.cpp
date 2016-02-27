@@ -7,8 +7,7 @@
 #include "primitive.hpp"
 #include "assert.h"
 
-// WRITEME: The default attribute propagation rule
-#define default_rule(X) X
+
 
 #include <typeinfo>
 
@@ -142,12 +141,18 @@ class Typecheck : public Visitor
             size = static_cast<DeclImpl *>(*iter)->m_symname_list->size();
             while(size>0){
                 s->m_arg_type.push_back(static_cast<DeclImpl *>(*iter)->m_type->m_attribute.m_basetype);
+                size--;
             }
         }
         s->m_basetype = bt_procedure;
         s->m_return_type = p->m_type->m_attribute.m_basetype;
-        if(!m_st->insert(name,s))
+
+        //check if proc is main
+        if(name=="Main" && s->m_arg_type.size()!=0)
             this->t_error(dup_proc_name, p->m_attribute);
+
+        if(!m_st->insert(name,s))
+            this->t_error(nonvoid_main, p->m_attribute);
     }
 
     // Add symbol table information for all the declarations following
@@ -191,6 +196,25 @@ class Typecheck : public Visitor
     // existing
     void check_call(Call *p)
     {
+        //check if procedure exist and it is a procedure
+        //chek number of argument matches 
+        //type of arguments matches
+        //type of lhs and procedure's return type matches
+        std::list<Expr_ptr>::iterator iter;
+        Symbol * s = m_st->lookup(p->m_symname->spelling());
+        if(s==NULL)
+            this->t_error(proc_undef, p->m_attribute);
+        if(s->m_basetype!=p->m_lhs->m_attribute.m_basetype)
+            this->t_error(call_type_mismatch, p->m_attribute);
+        if(p->m_expr_list->size()!=s->m_arg_type.size())
+            this->t_error(narg_mismatch, p->m_attribute);
+
+        std::vector<Basetype>::iterator iter2 = s->m_arg_type.begin();
+        for(iter = p->m_expr_list->begin(); iter!=p->m_expr_list->end(); ++iter){
+            if((*iter)->m_attribute.m_basetype!=*(iter2))
+                this->t_error(arg_type_mismatch, p->m_attribute);
+                ++iter2;
+        }
 
     }
 
@@ -237,6 +261,7 @@ class Typecheck : public Visitor
 
         if(p->m_expr->m_attribute.m_basetype!=bt_integer)
             this->t_error(array_index_error, p->m_attribute);
+        p->m_attribute.m_basetype = bt_char;
     }
 
     void check_array_element(ArrayElement* p)
@@ -249,6 +274,7 @@ class Typecheck : public Visitor
 
         if(p->m_expr->m_attribute.m_basetype!=bt_integer)
             this->t_error(array_index_error, p->m_attribute);
+        p->m_attribute.m_basetype = bt_char;
     }
 
     // For checking boolean operations(and, or ...)
@@ -289,7 +315,17 @@ class Typecheck : public Visitor
     void checkset_equalityexpr(Expr* parent, Expr* child1, Expr* child2)
     {
         Basetype c1 = child1->m_attribute.m_basetype, c2 = child2->m_attribute.m_basetype;
+        if(c1 == c2 && (c1 == bt_boolean || c1 == bt_integer || c1 == bt_charptr || c1 == bt_intptr ||c1 == bt_char)){
 
+        }
+        else if((c1 == bt_charptr || c1 == bt_intptr) && c2 == bt_ptr){
+
+        }
+        else if((c2 == bt_charptr || c2 == bt_intptr) && c1 == bt_ptr){
+
+        }
+        else
+            this->t_error(expr_type_err, parent->m_attribute);
     }
 
     // For checking not
@@ -345,7 +381,11 @@ class Typecheck : public Visitor
         Symbol * s = m_st->lookup(p->m_symname->spelling());
         if(s == NULL)
             this->t_error(var_undef, p->m_attribute);
-        if(s->m_basetype!=bt_charptr && s->m_basetype!=bt_intptr)
+        if(s->m_basetype!=bt_charptr)
+            p->m_attribute.m_basetype = bt_char;
+        else if (s->m_basetype!=bt_intptr)
+            p->m_attribute.m_basetype = bt_integer;
+        else
             this->t_error(invalid_deref, p->m_attribute);
     }
 
@@ -354,10 +394,21 @@ class Typecheck : public Visitor
         Symbol * s = m_st->lookup(p->m_symname->spelling());
         if(s == NULL)
             this->t_error(var_undef, p->m_attribute);
+        p->m_attribute.m_basetype = s->m_basetype;
+    }
+
+    void checkset_ident(Ident* p){
+        Symbol * s = m_st->lookup(p->m_symname->spelling());
+        if(s == NULL)
+            this->t_error(var_undef, p->m_attribute);
+        p->m_attribute.m_basetype = s->m_basetype;
     }
 
 
   public:
+    void default_rule(Visitable* p){
+        p->visit_children(this);
+    }
 
     Typecheck(FILE* errorfile, SymTab* st) {
         m_errorfile = errorfile;
@@ -366,182 +417,265 @@ class Typecheck : public Visitor
 
     void visitProgramImpl(ProgramImpl* p)
     {
+        default_rule(p);
+        check_for_one_main(p);
     }
 
     void visitProcImpl(ProcImpl* p)
     {
+        default_rule(p);
+        add_proc_symbol(p);
+        check_proc(p);
     }
 
     void visitCall(Call* p)
     {
-        //check if procedure exist and it is a procedure
-        //chek number of argument matches 
-        //type of arguments matches
-        //type of lhs and procedure's return type matches
+        default_rule(p);
+        check_call(p);
     }
 
     void visitNested_blockImpl(Nested_blockImpl* p)
     {
+        default_rule(p);
     }
 
     void visitProcedure_blockImpl(Procedure_blockImpl* p)
     {
+        default_rule(p);
     }
 
     void visitDeclImpl(DeclImpl* p)
     {
+        default_rule(p);
+        add_decl_symbol(p);
     }
 
     void visitAssignment(Assignment* p)
     {
+        default_rule(p);
+        check_assignment(p);
     }
 
     void visitStringAssignment(StringAssignment *p)
     {
+        default_rule(p);
+        check_string_assignment(p);
     }
 
     void visitIdent(Ident* p)
     {
+        default_rule(p);
+        checkset_ident(p);
     }
 
     void visitReturn(Return* p)
     {
+        default_rule(p);
+        check_return(p);
     }
 
     void visitIfNoElse(IfNoElse* p)
     {
+        default_rule(p);
+        check_pred(p->m_expr,1);
     }
 
     void visitIfWithElse(IfWithElse* p)
     {
+        default_rule(p);
+        check_pred(p->m_expr,1);
     }
 
     void visitWhileLoop(WhileLoop* p)
     {
+        default_rule(p);
+        check_pred(p->m_expr,2);
     }
 
     void visitTInteger(TInteger* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_integer;
     }
 
     void visitTBoolean(TBoolean* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_boolean;
     }
 
     void visitTCharacter(TCharacter* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_char;
     }
 
     void visitTString(TString* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_string;
     }
 
     void visitTCharPtr(TCharPtr* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_charptr;
     }
 
     void visitTIntPtr(TIntPtr* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_intptr;
     }
 
     void visitAnd(And* p)
     {
+        default_rule(p);
+        checkset_boolexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitDiv(Div* p)
     {
+        default_rule(p);
+        checkset_arithexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitCompare(Compare* p)
     {
+        default_rule(p);
+        checkset_equalityexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitGt(Gt* p)
     {
+        default_rule(p);
+        checkset_relationalexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitGteq(Gteq* p)
     {
+        default_rule(p);
+        checkset_relationalexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitLt(Lt* p)
     {
+        default_rule(p);
+        checkset_relationalexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitLteq(Lteq* p)
     {
+        default_rule(p);
+        checkset_relationalexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitMinus(Minus* p)
     {
+        default_rule(p);
+        checkset_arithexpr_or_pointer(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitNoteq(Noteq* p)
     {
+        default_rule(p);
+        checkset_equalityexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitOr(Or* p)
     {
+        default_rule(p);
+        checkset_boolexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitPlus(Plus* p)
     {
+        default_rule(p);
+        checkset_arithexpr_or_pointer(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitTimes(Times* p)
     {
+        default_rule(p);
+        checkset_arithexpr(p,p->m_expr_1,p->m_expr_2);
     }
 
     void visitNot(Not* p)
     {
+        default_rule(p);
+        checkset_not(p,p->m_expr);
     }
 
     void visitUminus(Uminus* p)
     {
+        default_rule(p);
+        checkset_uminus(p,p->m_expr);
     }
 
     void visitArrayAccess(ArrayAccess* p)
     {
+        default_rule(p);
+        check_array_access(p);
     }
 
     void visitIntLit(IntLit* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_integer;
     }
 
     void visitCharLit(CharLit* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_char;
     }
 
     void visitBoolLit(BoolLit* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_boolean;
     }
 
     void visitNullLit(NullLit* p)
     {
+        default_rule(p);
+        p->m_attribute.m_basetype = bt_ptr;
     }
 
     void visitAbsoluteValue(AbsoluteValue* p)
     {
+        default_rule(p);
+        checkset_absolute_value(p,p->m_expr);
     }
 
     void visitAddressOf(AddressOf* p)
     {
+        default_rule(p);
+        checkset_addressof(p,p->m_lhs);
     }
 
     void visitVariable(Variable* p)
     {
+        default_rule(p);
+        checkset_variable(p);
     }
 
     void visitDeref(Deref* p)
     {
+        default_rule(p);
+        checkset_deref_expr(p,p->m_expr);
     }
 
     void visitDerefVariable(DerefVariable* p)
     {
+        default_rule(p);
+        checkset_deref_lhs(p);
     }
 
     void visitArrayElement(ArrayElement* p)
     {
+        default_rule(p);
+        check_array_element(p);
     }
 
     // Special cases
