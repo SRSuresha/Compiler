@@ -6,7 +6,7 @@
 #include "symtab.hpp"
 #include "primitive.hpp"
 #include "assert.h"
-
+using namespace std;
 
 
 #include <typeinfo>
@@ -148,11 +148,13 @@ class Typecheck : public Visitor
         s->m_return_type = p->m_type->m_attribute.m_basetype;
 
         //check if proc is main
-        if(name=="Main" && s->m_arg_type.size()!=0)
-            this->t_error(dup_proc_name, p->m_attribute);
+        cout<<name<<endl;
+        cout<<s->m_arg_type.size()<<endl;
+        if(strcmp(name,"Main")==0 && s->m_arg_type.size()!=0)
+            this->t_error(nonvoid_main, p->m_attribute);
 
         if(!m_st->insert(name,s))
-            this->t_error(nonvoid_main, p->m_attribute);
+            this->t_error(dup_proc_name, p->m_attribute);
     }
 
     // Add symbol table information for all the declarations following
@@ -169,6 +171,17 @@ class Typecheck : public Visitor
                 this->t_error(dup_var_name, p->m_attribute);
             }
         }
+    }
+
+    // only figure out the parameter type of Proc
+    void process_Proc_symbol(ProcImpl* p){
+        std::list<Decl_ptr>::iterator iter;
+        char * name; Symbol *s = new Symbol();
+        int size =0;
+        for (iter = p->m_decl_list->begin(); iter != p->m_decl_list->end(); ++iter){
+            static_cast<DeclImpl *>(*iter)->m_type->accept(this);
+        }
+        p->m_type->accept(this);
     }
 
     // Check that the return statement of a procedure has the appropriate type
@@ -197,17 +210,21 @@ class Typecheck : public Visitor
     void check_call(Call *p)
     {
         //check if procedure exist and it is a procedure
-        //chek number of argument matches 
+        //chek number of argument matches
         //type of arguments matches
         //type of lhs and procedure's return type matches
+        cout<<"Enter check call\n";
         std::list<Expr_ptr>::iterator iter;
         Symbol * s = m_st->lookup(p->m_symname->spelling());
         if(s==NULL)
             this->t_error(proc_undef, p->m_attribute);
-        if(s->m_basetype!=p->m_lhs->m_attribute.m_basetype)
-            this->t_error(call_type_mismatch, p->m_attribute);
         if(p->m_expr_list->size()!=s->m_arg_type.size())
             this->t_error(narg_mismatch, p->m_attribute);
+        if(s->m_return_type!=p->m_lhs->m_attribute.m_basetype){
+            cout<<s->m_basetype<<endl;
+            cout<<p->m_lhs->m_attribute.m_basetype<<endl;
+            this->t_error(call_type_mismatch, p->m_attribute);
+        }
 
         std::vector<Basetype>::iterator iter2 = s->m_arg_type.begin();
         for(iter = p->m_expr_list->begin(); iter!=p->m_expr_list->end(); ++iter){
@@ -237,6 +254,7 @@ class Typecheck : public Visitor
     {
         Basetype l = p->m_lhs->m_attribute.m_basetype, r = p->m_expr->m_attribute.m_basetype;
         if(l!=r){
+            cout<<l<<endl<<r<<endl<<endl;
             if((l==bt_intptr || l == bt_charptr) && r == bt_ptr){}
             else
                 this->t_error(incompat_assign, p->m_attribute);
@@ -288,7 +306,10 @@ class Typecheck : public Visitor
     // For checking arithmetic expressions(plus, times, ...)
     void checkset_arithexpr(Expr* parent, Expr* child1, Expr* child2)
     {
-        if(child1->m_attribute.m_basetype!=bt_integer || child2->m_attribute.m_basetype!=bt_integer)
+        Basetype c1 = child1->m_attribute.m_basetype, c2 = child2->m_attribute.m_basetype;
+        if(c1 == bt_intptr || c1 == bt_charptr || c2 == bt_intptr || c2 == bt_charptr)
+            this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+        if(c1!=bt_integer || c2!=bt_integer)
             this->t_error(expr_type_err, parent->m_attribute);
         parent->m_attribute.m_basetype = bt_integer;
     }
@@ -297,6 +318,12 @@ class Typecheck : public Visitor
     void checkset_arithexpr_or_pointer(Expr* parent, Expr* child1, Expr* child2)
     {
         Basetype c1 = child1->m_attribute.m_basetype, c2 = child2->m_attribute.m_basetype;
+        if(c2 == bt_charptr || c2 == bt_intptr)
+            this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+        if(c1 == bt_charptr || c2 == bt_intptr){
+            if(c2!=bt_integer)
+                this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+        }
         if((c1!=bt_integer && c1!=bt_charptr && c1!=bt_intptr) || c2!=bt_integer)
             this->t_error(expr_type_err, parent->m_attribute);
         parent->m_attribute.m_basetype = c1;
@@ -315,7 +342,7 @@ class Typecheck : public Visitor
     void checkset_equalityexpr(Expr* parent, Expr* child1, Expr* child2)
     {
         Basetype c1 = child1->m_attribute.m_basetype, c2 = child2->m_attribute.m_basetype;
-        if(c1 == c2 && (c1 == bt_boolean || c1 == bt_integer || c1 == bt_charptr || c1 == bt_intptr ||c1 == bt_char)){
+        if(c1 == c2 && (c1 == bt_boolean || c1 == bt_integer || c1 == bt_charptr || c1 == bt_intptr ||c1 == bt_char || c1 == bt_ptr)){
 
         }
         else if((c1 == bt_charptr || c1 == bt_intptr) && c2 == bt_ptr){
@@ -348,7 +375,7 @@ class Typecheck : public Visitor
     {
         Basetype c = child->m_attribute.m_basetype;
         if(c != bt_string && c != bt_integer)
-            this->t_error(expr_type_err, parent->m_attribute);
+            this->t_error(expr_abs_error, parent->m_attribute);
         parent->m_attribute.m_basetype = bt_integer;
     }
 
@@ -417,14 +444,18 @@ class Typecheck : public Visitor
 
     void visitProgramImpl(ProgramImpl* p)
     {
+        cout<<p->m_attribute.lineno<<endl;
         default_rule(p);
         check_for_one_main(p);
     }
 
     void visitProcImpl(ProcImpl* p)
     {
-        default_rule(p);
+        process_Proc_symbol(p);
         add_proc_symbol(p);
+        m_st->open_scope();
+        default_rule(p);
+        m_st->close_scope();
         check_proc(p);
     }
 
@@ -644,6 +675,7 @@ class Typecheck : public Visitor
 
     void visitAbsoluteValue(AbsoluteValue* p)
     {
+        cout<<"Enter here\n";
         default_rule(p);
         checkset_absolute_value(p,p->m_expr);
     }

@@ -1,0 +1,30 @@
+procedure foo(x: integer; y: char) return integer
+{
+	var a : integer;
+    return 2*x;
+}
+
+procedure Main() return integer
+{
+    var a : integer;
+    var c : char;
+    var s : string[5];
+    var i : intptr;
+    var p : charptr;
+    a = foo(1,'c'); 
+    while(true){
+    	a = ^i;
+    	p = p-5;
+    	(%p = 5+p;%)
+    	p = null;
+    	p = &s[1];
+    	i = &a;
+    	a = |s|;
+    }
+    return a;
+}
+
+procedure fo(x: integer) return integer
+{
+    return 3;
+}

@@ -5,6 +5,8 @@
     #include "ast.hpp"
     #include "primitive.hpp"
     #include "symtab.hpp"
+    #include <iostream>
+    using namespace std;
 
     #define YYDEBUG 1
 
@@ -194,7 +196,7 @@ term    : ID sbarket
         }
         | '|' exprs '|'
         {
-            $$.u_expr = $2.u_expr;
+            $$.u_expr = new AbsoluteValue($2.u_expr);
         }
         | '!' exprs                     %prec Dummy
         {
@@ -250,7 +252,7 @@ literal : NUMBER
         }
         | NULLX
         {
-            $$.u_expr = new IntLit(new Primitive(0));
+            $$.u_expr = new NullLit();
         }
         ;
 
@@ -294,6 +296,7 @@ arguments : exprs argumentsPrime
 argumentsPrime: ',' exprs argumentsPrime
         {
             $3.u_expr_list->push_front($2.u_expr);
+            $$.u_expr_list = $3.u_expr_list;
         }
         |
         {
