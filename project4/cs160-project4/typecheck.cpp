@@ -16,6 +16,7 @@ class Typecheck : public Visitor
   private:
     FILE* m_errorfile;
     SymTab* m_st;
+    bool main_declared = false;
 
     // The set of recognized errors
     enum errortype
@@ -150,9 +151,16 @@ class Typecheck : public Visitor
         //check if proc is main
         cout<<name<<endl;
         cout<<s->m_arg_type.size()<<endl;
-        if(strcmp(name,"Main")==0 && s->m_arg_type.size()!=0)
-            this->t_error(nonvoid_main, p->m_attribute);
-
+        if(strcmp(name,"Main")==0){
+            /*if(!main_declared)
+                main_declared = true;
+            else
+                this->t_error(no_main, p->m_attribute);*/
+            if(s->m_arg_type.size()!=0)
+                this->t_error(nonvoid_main, p->m_attribute);
+        }
+        if(m_st->lookup(name)!=NULL)
+            this->t_error(dup_proc_name, p->m_attribute);
         if(!m_st->insert(name,s))
             this->t_error(dup_proc_name, p->m_attribute);
     }
@@ -353,6 +361,7 @@ class Typecheck : public Visitor
         }
         else
             this->t_error(expr_type_err, parent->m_attribute);
+        parent->m_attribute.m_basetype = bt_boolean;
     }
 
     // For checking not
@@ -434,6 +443,7 @@ class Typecheck : public Visitor
 
   public:
     void default_rule(Visitable* p){
+        static_cast<Program*>(p)->m_attribute.m_scope = m_st->get_scope();
         p->visit_children(this);
     }
 

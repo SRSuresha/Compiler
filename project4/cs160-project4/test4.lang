@@ -32,6 +32,7 @@ procedure Main() return integer
             x = 12;
         }
     }
+		x = Main();
 
     return 0;
 }
@@ -39,14 +40,17 @@ procedure Main() return integer
 procedure f(ax: integer) return boolean
 {
     var d: boolean;
+		var k: integer;
+		var j: integer;
+		var x: integer;
 
     procedure nested() return boolean
     {
         var i,a: integer;
-	return j-a == 12;
+	return i-a == 12;
     }
 
-    return -(---k+j*k/x);
+    return -(---k+j*k/x)==1;
 }
 
 procedure main(ax: integer) return boolean
