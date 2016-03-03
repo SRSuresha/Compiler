@@ -20,18 +20,21 @@
 
  %token  BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
  %token NUMBER   STRINGV CHARV TRUE FALSE AND OR
- %left AND OR
- %left '<' '>' '=' NEQ LE GE EQ 
+ %left '='
+ %left OR
+ %left AND
+ %left EQ NEQ
+ %left '<' '>'  LE GE
  %left '+' '-'
  %left '*' '/'
- %right Dummy  
+ %right Dummy
 
 %%
 
-s       : procedures     
-        { 
+s       : procedures
+        {
             ast = new ProgramImpl($1.u_proc_list);
-        }           
+        }
         ;
 
 
@@ -40,13 +43,13 @@ procedures  : procedures procedure
                 $1.u_proc_list->push_back($2.u_proc);
                 $$.u_proc_list = $1.u_proc_list;
             }
-            | 
+            |
             {
                 $$.u_proc_list = new std::list<Proc_ptr>();
             }
             ;
 
-procedure   : PROCEDURE ID '(' parameter ')' RETURN returnType '{' procedureBlock '}' 
+procedure   : PROCEDURE ID '(' parameter ')' RETURN returnType '{' procedureBlock '}'
             {
                 $$.u_proc = new ProcImpl(new SymName($2.u_base_charptr),$4.u_decl_list,$7.u_type,$9.u_procedure_block);
             }
@@ -54,7 +57,7 @@ procedure   : PROCEDURE ID '(' parameter ')' RETURN returnType '{' procedureBloc
 
 
 
-procedureBlock  : decls procedures stmts returnStmt 
+procedureBlock  : decls procedures stmts returnStmt
                 {
                     $$.u_procedure_block = new Procedure_blockImpl($1.u_decl_list, $2.u_proc_list, $3.u_stat_list, $4.u_return_stat);
                 }
@@ -65,7 +68,7 @@ decls   : decls decl
             $1.u_decl_list->push_back($2.u_decl);
             $$.u_decl_list = $1.u_decl_list;
         }
-        |  
+        |
         {
             $$.u_decl_list = new std::list<Decl_ptr>();
         }
@@ -77,32 +80,32 @@ decl    : VAR ID idPrime ':' declareType ';'
             $3.u_symname_list->push_front(new SymName($2.u_base_charptr));
             $$.u_decl = new DeclImpl($3.u_symname_list,$5.u_type);
         }
-        ;  
+        ;
 
 stmts   : stmts stmt
         {
             $1.u_stat_list->push_back($2.u_stat);
             $$.u_stat_list = $1.u_stat_list;
         }
-        | 
+        |
         {
             $$.u_stat_list = new std::list<Stat_ptr>();
         }
 
 
-stmt    : lhs '=' exprs ';'    
+stmt    : lhs '=' exprs ';'
         {
             $$.u_stat = new Assignment($1.u_lhs,$3.u_expr);
-        }   
-        | lhs '=' STRINGV ';'  
+        }
+        | lhs '=' STRINGV ';'
         {
             $$.u_stat = new StringAssignment($1.u_lhs,new StringPrimitive($3.u_base_charptr));
         }
-        | lhs '=' ID '(' arguments ')' ';' 
+        | lhs '=' ID '(' arguments ')' ';'
         {
             $$.u_stat = new Call($1.u_lhs,new SymName($3.u_base_charptr),$5.u_expr_list);
         }
-        | IF '(' exprs ')'  '{' stmts '}' ELSE '{' stmts '}' 
+        | IF '(' exprs ')'  '{' stmts '}' ELSE '{' stmts '}'
         {
             $$.u_stat = new IfWithElse($3.u_expr, new Nested_blockImpl($6.u_stat_list), new Nested_blockImpl($10.u_stat_list));
         }
@@ -171,10 +174,10 @@ exprs   : exprs '*' exprs
         {
             $$.u_expr = new Or($1.u_expr,$3.u_expr);
         }
-        | term 
+        | term
         {
             $$.u_expr = $1.u_expr;
-        }                   
+        }
         ;
 
 
@@ -200,12 +203,12 @@ term    : ID sbarket
         }
         | '!' exprs                     %prec Dummy
         {
-            $$.u_expr = new Not($2.u_expr); 
-        } 
+            $$.u_expr = new Not($2.u_expr);
+        }
         | '^' exprs                     %prec Dummy
         {
             $$.u_expr = new Deref($2.u_expr);
-        } 
+        }
         | '-' exprs                     %prec Dummy
         {
             $$.u_expr = new Uminus($2.u_expr);
@@ -213,22 +216,22 @@ term    : ID sbarket
         | '+' exprs                     %prec Dummy
         {
             $$ = $2;
-        }  
-        | '&' lhs                     %prec Dummy 
+        }
+        | '&' lhs                     %prec Dummy
         {
             $$.u_expr = new AddressOf($2.u_lhs);
         }
         ;
 
-lhs     : ID sbarket          
+lhs     : ID sbarket
         {
             $$.u_lhs = new ArrayElement(new SymName($1.u_base_charptr),$2.u_expr);
-        }      
-        | ID                        
+        }
+        | ID
         {
             $$.u_lhs = new Variable(new SymName($1.u_base_charptr));
         }
-        | '^' ID                    
+        | '^' ID
         {
             $$.u_lhs = new DerefVariable(new SymName($1.u_base_charptr));
         }
@@ -265,18 +268,18 @@ sbarket : '[' exprs ']'
 
 
 
-returnType  : BOOLEAN           {$$.u_type = new TBoolean();}   
+returnType  : BOOLEAN           {$$.u_type = new TBoolean();}
         | INTEGER               {$$.u_type = new TInteger();}
         | CHAR                  {$$.u_type = new TCharacter();}
         | CHARPTR               {$$.u_type = new TCharPtr();}
         | INTPTR                {$$.u_type = new TIntPtr();}
         ;
 
-declareType : BOOLEAN               {$$.u_type = new TBoolean();} 
-        | INTEGER                   {$$.u_type = new TInteger();} 
-        | CHAR                      {$$.u_type = new TCharacter();} 
-        | CHARPTR                   {$$.u_type = new TCharPtr();} 
-        | INTPTR                    {$$.u_type = new TIntPtr();} 
+declareType : BOOLEAN               {$$.u_type = new TBoolean();}
+        | INTEGER                   {$$.u_type = new TInteger();}
+        | CHAR                      {$$.u_type = new TCharacter();}
+        | CHARPTR                   {$$.u_type = new TCharPtr();}
+        | INTPTR                    {$$.u_type = new TIntPtr();}
         | STRING '[' NUMBER ']'     {$$.u_type = new TString(new Primitive($3.u_base_int));}
         ;
 
@@ -310,7 +313,7 @@ parameter: ID idPrime ':' returnType parameterPrime
             $2.u_symname_list->push_front(new SymName($1.u_base_charptr));
             $5.u_decl_list->push_front(new DeclImpl($2.u_symname_list,$4.u_type));
             $$.u_decl_list = $5.u_decl_list;
-        }               
+        }
         |
         {
             $$.u_decl_list = new std::list<Decl_ptr>();
@@ -329,12 +332,12 @@ parameterPrime : ';' ID idPrime ':' returnType parameterPrime
         }
         ;
 
-idPrime : ',' ID idPrime 
+idPrime : ',' ID idPrime
         {
             $3.u_symname_list->push_front(new SymName($2.u_base_charptr));
             $$.u_symname_list = $3.u_symname_list;
         }
-        |   
+        |
         {
             $$.u_symname_list = new std::list<SymName_ptr>();
         }

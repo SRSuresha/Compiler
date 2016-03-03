@@ -7,7 +7,7 @@
     #include "ast.hpp"
     #include "parser.hpp"
 
-     void yyerror(const char *); 
+     void yyerror(const char *);
 %}
 
 
@@ -36,7 +36,7 @@
 
 "||"				{return OR;}
 [\"].*[\"]			{yylval.u_base_charptr = strdup(yytext);  return STRINGV;}
-[\'].[\']			{yylval.u_base_int=atoi(yytext);   return CHARV;}
+[\'].[\']			{yylval.u_base_int=(int)(*yytext);   return CHARV;}
 
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 

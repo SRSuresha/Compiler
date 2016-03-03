@@ -24,7 +24,7 @@ procedure Main() return integer
 		var c : integer;
 	    return 2*a;
 	}
-
+		c = 'a';
     a = foo(1,'c');
 	(%a = Main();%)
 	p = p+4;
@@ -37,6 +37,9 @@ procedure Main() return integer
     	i = &a;
     	a = |s|;
     }
+
+		if(2!=3>4){
+		}
 
     return a;
 }
