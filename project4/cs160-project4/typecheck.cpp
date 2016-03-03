@@ -467,7 +467,9 @@ class Typecheck : public Visitor
 
     void visitNested_blockImpl(Nested_blockImpl* p)
     {
+        m_st->open_scope();
         default_rule(p);
+        m_st->close_scope();
     }
 
     void visitProcedure_blockImpl(Procedure_blockImpl* p)
