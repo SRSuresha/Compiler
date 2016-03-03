@@ -1,7 +1,14 @@
 procedure foo(x: integer; y: char) return integer
 {
 	var a : integer;
-
+	procedure foo(x: integer; y: char) return integer
+	{
+		var c : integer;
+	    return 2*a;
+	}
+	procedure Main() return integer{
+		return 1;
+	}
 	return 2*x;
 }
 
@@ -19,8 +26,8 @@ procedure Main() return integer
 	}
 
     a = foo(1,'c');
-	a = Main();
-
+	(%a = Main();%)
+	p = p+4;
     while(true){
     	a = ^i;
     	p = p-5;

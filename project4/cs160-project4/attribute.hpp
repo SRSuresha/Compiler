@@ -38,4 +38,3 @@ class Attribute
 };
 
 #endif //ATTRIBUTE_HPP
-

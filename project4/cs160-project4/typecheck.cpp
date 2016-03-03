@@ -149,18 +149,10 @@ class Typecheck : public Visitor
         s->m_return_type = p->m_type->m_attribute.m_basetype;
 
         //check if proc is main
-        cout<<name<<endl;
-        cout<<s->m_arg_type.size()<<endl;
         if(strcmp(name,"Main")==0){
-            /*if(!main_declared)
-                main_declared = true;
-            else
-                this->t_error(no_main, p->m_attribute);*/
             if(s->m_arg_type.size()!=0)
                 this->t_error(nonvoid_main, p->m_attribute);
         }
-        if(m_st->lookup(name)!=NULL)
-            this->t_error(dup_proc_name, p->m_attribute);
         if(!m_st->insert(name,s))
             this->t_error(dup_proc_name, p->m_attribute);
     }
@@ -221,7 +213,6 @@ class Typecheck : public Visitor
         //chek number of argument matches
         //type of arguments matches
         //type of lhs and procedure's return type matches
-        cout<<"Enter check call\n";
         std::list<Expr_ptr>::iterator iter;
         Symbol * s = m_st->lookup(p->m_symname->spelling());
         if(s==NULL)
@@ -229,8 +220,6 @@ class Typecheck : public Visitor
         if(p->m_expr_list->size()!=s->m_arg_type.size())
             this->t_error(narg_mismatch, p->m_attribute);
         if(s->m_return_type!=p->m_lhs->m_attribute.m_basetype){
-            cout<<s->m_basetype<<endl;
-            cout<<p->m_lhs->m_attribute.m_basetype<<endl;
             this->t_error(call_type_mismatch, p->m_attribute);
         }
 
@@ -262,7 +251,6 @@ class Typecheck : public Visitor
     {
         Basetype l = p->m_lhs->m_attribute.m_basetype, r = p->m_expr->m_attribute.m_basetype;
         if(l!=r){
-            cout<<l<<endl<<r<<endl<<endl;
             if((l==bt_intptr || l == bt_charptr) && r == bt_ptr){}
             else
                 this->t_error(incompat_assign, p->m_attribute);
@@ -328,7 +316,9 @@ class Typecheck : public Visitor
         Basetype c1 = child1->m_attribute.m_basetype, c2 = child2->m_attribute.m_basetype;
         if(c2 == bt_charptr || c2 == bt_intptr)
             this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
-        if(c1 == bt_charptr || c2 == bt_intptr){
+        if(c1 == bt_charptr || c1 == bt_intptr){
+            if(c1 == bt_intptr)
+                this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
             if(c2!=bt_integer)
                 this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
         }
@@ -454,7 +444,6 @@ class Typecheck : public Visitor
 
     void visitProgramImpl(ProgramImpl* p)
     {
-        cout<<p->m_attribute.lineno<<endl;
         default_rule(p);
         check_for_one_main(p);
     }
@@ -462,6 +451,7 @@ class Typecheck : public Visitor
     void visitProcImpl(ProcImpl* p)
     {
         process_Proc_symbol(p);
+        p->m_attribute.m_scope = m_st->get_scope();
         add_proc_symbol(p);
         m_st->open_scope();
         default_rule(p);
@@ -685,7 +675,6 @@ class Typecheck : public Visitor
 
     void visitAbsoluteValue(AbsoluteValue* p)
     {
-        cout<<"Enter here\n";
         default_rule(p);
         checkset_absolute_value(p,p->m_expr);
     }
