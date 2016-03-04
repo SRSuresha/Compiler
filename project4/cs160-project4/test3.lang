@@ -38,7 +38,7 @@ procedure Main() return integer
     	a = |s|;
     }
 
-		if(2!=3>4){
+		if(true!=3>4){
 		}
 
     return a;

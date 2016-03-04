@@ -36,7 +36,7 @@
 
 "||"				{return OR;}
 [\"].*[\"]			{yylval.u_base_charptr = strdup(yytext);  return STRINGV;}
-[\'].[\']			{yylval.u_base_int=(int)(*yytext);   return CHARV;}
+[\'].[\']			{yylval.u_base_int=(int)(*(yytext+1));   return CHARV;}
 
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 
