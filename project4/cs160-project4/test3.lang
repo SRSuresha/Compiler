@@ -25,17 +25,20 @@ procedure Main() return integer
 	    return 2*a;
 	}
 		c = 'a';
+	s = "Hello World";
     a = foo(1,'c');
 	(%a = Main();%)
 	p = p+4;
-    while(true){
+    while(true || 4>4 && i!=null ){
     	a = ^i;
     	p = p-5;
-    	(%p = 5+p;%)
+    	p = 5+p;
+		p = 3+'c';
     	p = null;
     	p = &s[1];
     	i = &a;
     	a = |s|;
+		a = |a|;
     }
 
 		if(true!=3>4){
@@ -47,4 +50,9 @@ procedure Main() return integer
 procedure fo(x: integer) return integer
 {
     return 3;
+}
+
+procedure foa(x: integer) return charptr
+{
+    return null;
 }

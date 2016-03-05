@@ -13,6 +13,7 @@
 
 
 %%
+
 "boolean"			{return BOOLEAN;}
 "char"				{return CHAR;}
 "integer"			{return INTEGER;}
@@ -35,7 +36,12 @@
 "!="				{return NEQ;}
 
 "||"				{return OR;}
-[\"].*[\"]			{yylval.u_base_charptr = strdup(yytext);  return STRINGV;}
+[\"].*[\"]			{
+                        char * temp = strdup(yytext);
+                        temp+=1;
+                        temp[strlen(temp)-1] = '\0';
+                        yylval.u_base_charptr = temp;  return STRINGV;
+                    }
 [\'].[\']			{yylval.u_base_int=(int)(*(yytext+1));   return CHARV;}
 
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
@@ -70,7 +76,6 @@
 
 <<EOF>> 					{yyterminate();}
 .                   yyerror((char *) "invalid character");
-
 
 %%
 

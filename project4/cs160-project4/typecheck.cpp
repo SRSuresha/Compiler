@@ -191,7 +191,13 @@ class Typecheck : public Visitor
         corrrect_type = p->m_type->m_attribute.m_basetype;
         real_type =  static_cast<Return *>(static_cast<Procedure_blockImpl *>(p->m_procedure_block)->m_return_stat)->m_expr->m_attribute.m_basetype;
         if(corrrect_type!=real_type){
-            this->t_error(ret_type_mismatch,p->m_attribute);
+            if(corrrect_type == bt_charptr || corrrect_type == bt_intptr){
+                if(real_type != bt_ptr)
+                {
+                    this->t_error(ret_type_mismatch,p->m_attribute);
+                }
+            }
+            else this->t_error(ret_type_mismatch,p->m_attribute);
         }
     }
 
@@ -314,17 +320,29 @@ class Typecheck : public Visitor
     void checkset_arithexpr_or_pointer(Expr* parent, Expr* child1, Expr* child2)
     {
         Basetype c1 = child1->m_attribute.m_basetype, c2 = child2->m_attribute.m_basetype;
-        if(c2 == bt_charptr || c2 == bt_intptr)
-            this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
-        if(c1 == bt_charptr || c1 == bt_intptr){
-            if(c1 == bt_intptr)
-                this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
-            if(c2!=bt_integer)
-                this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+
+        if(c1 == bt_charptr || c1 == bt_intptr || c2 == bt_charptr || c2 == bt_intptr){
+                if(c1 == bt_charptr || c1 == bt_intptr ){
+                    if(c1 == bt_intptr)
+                        this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+                    if(c2!=bt_integer)
+                        this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+                    parent->m_attribute.m_basetype = bt_charptr;
+                }
+                else if(c2 == bt_charptr || c2 == bt_intptr){
+                    if(c2 == bt_intptr)
+                        this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+                    if(c1!=bt_integer)
+                        this->t_error(expr_pointer_arithmetic_err, parent->m_attribute);
+                    parent->m_attribute.m_basetype = bt_charptr;
+                }
         }
-        if((c1!=bt_integer && c1!=bt_charptr && c1!=bt_intptr) || c2!=bt_integer)
+        else if((c1!=bt_integer && c1!=bt_charptr && c1!=bt_intptr) || c2!=bt_integer){
             this->t_error(expr_type_err, parent->m_attribute);
-        parent->m_attribute.m_basetype = c1;
+        }
+        else{
+            parent->m_attribute.m_basetype = bt_integer;
+        }
     }
 
     // For checking relational(less than , greater than, ...)

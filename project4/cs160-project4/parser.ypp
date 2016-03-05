@@ -19,8 +19,8 @@
 %error-verbose
 
  %token  BOOLEAN CHAR INTEGER STRING INTPTR CHARPTR IF ELSE WHILE VAR PROCEDURE RETURN ID NULLX
- %token NUMBER   STRINGV CHARV TRUE FALSE AND OR
- %left '='
+ %token NUMBER   STRINGV CHARV TRUE FALSE
+ %right '='
  %left OR
  %left AND
  %left EQ NEQ
@@ -233,7 +233,7 @@ lhs     : ID sbarket
         }
         | '^' ID
         {
-            $$.u_lhs = new DerefVariable(new SymName($1.u_base_charptr));
+            $$.u_lhs = new DerefVariable(new SymName($2.u_base_charptr));
         }
         ;
 
