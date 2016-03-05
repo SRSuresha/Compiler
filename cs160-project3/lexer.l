@@ -7,7 +7,7 @@
     #include "ast.hpp"
     #include "parser.hpp"
 
-     void yyerror(const char *); 
+     void yyerror(const char *);
 %}
 
 /** WRITE ME:
@@ -50,8 +50,13 @@
 "!="				{return NEQ;}
 
 "||"				{return OR;}
-[\"].*[\"]			{yylval.u_base_charptr = strdup(yytext);  return STRINGV;}
-[\'].[\']			{yylval.u_base_int=atoi(yytext);   return CHARV;}
+[\"].*[\"]			{
+                        char * temp = strdup(yytext);
+                        temp+=1;
+                        temp[strlen(temp)-1] = '\0';
+                        yylval.u_base_charptr = temp;  return STRINGV;
+                    }
+[\'].[\']			{yylval.u_base_int=(int)(*(yytext+1));   return CHARV;}
 
 [\/\=\>\<\-\!\+\*\&\^\;\:\,\|\{\}\(\)\[\]]  	{return *yytext; }
 
