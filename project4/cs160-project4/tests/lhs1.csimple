@@ -1,0 +1,7 @@
+procedure Main() return boolean
+{
+	var a:intptr;
+	var b:integer;
+	^a = &b;
+	return a;
+}

@@ -1,0 +1,18 @@
+procedure foo(x: integer; y: char) return integer
+{
+    var c : string[5];
+    procedure Main() return integer{
+        return 1;
+    }
+
+    return 1;
+}
+
+
+procedure Main() return integer{
+    return 'a';
+}
+
+procedure Maain() return intptr{
+    return null;
+}

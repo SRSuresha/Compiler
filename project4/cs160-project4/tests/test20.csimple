@@ -1,0 +1,36 @@
+procedure foo(x: integer; y: char) return integer
+{
+    var c : string[5];
+    procedure Main() return integer{
+        return 1;
+    }
+
+    return 1;
+}
+
+
+procedure Main() return integer{
+    var b : char;
+    var a : integer;
+    var c : intptr;
+    var d : charptr;
+    var e : string[10];
+    a = foo(1,b);
+    if(a>5 && a<3){
+        a = |e|;
+        a = |a|;
+        a = |a+5|;
+    }
+    if(a>5 || a<6){
+
+    }
+
+    if(b && true){
+
+    }
+
+    if( true || d){
+
+    }
+    return 1;
+}

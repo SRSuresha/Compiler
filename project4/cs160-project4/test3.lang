@@ -33,7 +33,6 @@ procedure Main() return integer
     	a = ^i;
     	p = p-5;
     	p = 5+p;
-		p = 3+'c';
     	p = null;
     	p = &s[1];
     	i = &a;

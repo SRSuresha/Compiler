@@ -1,0 +1,22 @@
+procedure foo(x: integer; y: intptr) return integer
+{
+    var b : integer;
+    procedure Main() return integer{
+        return 1;
+    }
+    if(true){
+        b = 1;
+    }
+
+    return 1;
+}
+
+
+
+procedure Main() return integer{
+    var a : integer;
+    var c : charptr;
+    a = foo(a,null);
+    a = foo(a, a);
+    return 1;
+}

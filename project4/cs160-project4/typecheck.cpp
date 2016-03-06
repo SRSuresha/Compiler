@@ -231,9 +231,15 @@ class Typecheck : public Visitor
 
         std::vector<Basetype>::iterator iter2 = s->m_arg_type.begin();
         for(iter = p->m_expr_list->begin(); iter!=p->m_expr_list->end(); ++iter){
-            if((*iter)->m_attribute.m_basetype!=*(iter2))
-                this->t_error(arg_type_mismatch, p->m_attribute);
-                ++iter2;
+            Basetype t1 = (*iter)->m_attribute.m_basetype, t2 = *(iter2);
+            if(t1!=t2){
+                if(t2!=bt_charptr && t2 != bt_intptr){
+                    this->t_error(arg_type_mismatch, p->m_attribute);
+                }
+                else if(t1!=bt_ptr)
+                    this->t_error(arg_type_mismatch, p->m_attribute);
+            }
+            ++iter2;
         }
 
     }
